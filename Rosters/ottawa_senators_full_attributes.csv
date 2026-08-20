@@ -1,0 +1,40 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Tim Stutzle,C,18,90,HIGH,Playmaker,X-Factor,Germany,24,91,94,88,91,92,80,85,73,80,81,87,82,91,87,90,94,90,92,83,92,88,88,88,89,88,82,,86,90,65,85,2074
+2,Jake Sanderson,D,85,89,MED,2 Way D-Man,X-Factor,United States,24,89,92,89,88,88,80,90,55,85,89,88,89,88,87,91,91,89,93,90,90,89,87,89,90,88,82,,81,90,70,88,2076
+3,Linus Ullmark,G,35,87,MED,Hybrid,X-Factor,Sweden,33,21,,,82,,,,,,,29,,,87,52,,85,,87,88,,,,,,34,82,,87,,,598
+4,Thomas Chabot,D,72,87,MED,2 Way D-Man,X-Factor,Canada,29,91,92,88,90,92,77,87,55,85,82,88,84,92,88,89,92,89,90,82,91,91,91,91,91,90,82,,82,87,70,87,2068
+5,Claude Giroux,R,28,86,HIGH,Playmaker,X-Factor,Canada,38,87,87,84,91,87,83,86,82,82,83,87,85,90,87,85,85,83,83,90,84,87,88,87,87,86,82,,83,89,70,84,2043
+6,Drake Batherson,R,19,86,MED,2 Way Forward,X-Factor,Canada,28,89,89,86,91,89,78,85,65,80,81,87,83,91,86,88,88,88,90,87,88,90,92,89,89,88,84,,87,89,70,88,2059
+7,William Eklund,L,72,86,MED,Playmaker,X-Factor,Sweden,23,87,88,84,89,88,79,85,66,83,80,86,84,89,84,87,87,86,89,85,86,87,87,86,88,87,80,,83,87,67,83,2021
+8,Dylan Cozens,C,24,85,MED,2 Way Forward,X-Factor,Canada,25,88,89,85,88,88,84,85,81,83,85,84,81,88,84,88,90,88,85,87,89,89,89,88,90,88,83,,88,87,70,86,2062
+9,Artem Zub,D,2,84,MED,2 Way D-Man,,Russia,30,82,81,80,83,82,78,88,55,85,83,83,80,85,83,82,81,80,83,85,81,86,83,89,84,89,84,,86,82,80,87,1975
+10,Warren Foegele,L,37,84,MED,Power Forward,,Canada,30,85,85,85,84,86,81,89,66,82,86,84,82,87,83,87,88,87,88,83,88,87,86,87,87,87,84,,84,85,80,88,2033
+11,Andre Burakovsky,L,,83,MED,Sniper,,Austria,31,87,88,87,87,87,77,85,65,75,84,87,90,87,85,88,89,89,87,84,89,87,86,87,86,87,81,,80,88,68,87,2027
+12,Fabian Zetterlund,L,20,83,MED,2 Way Forward,,Sweden,26,83,83,82,83,84,80,85,66,85,83,84,84,87,82,85,85,85,83,85,86,87,88,87,88,86,82,,87,86,67,89,2006
+13,Jordan Spence,D,10,83,MED,,,Australia,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+14,Samuel Ersson,G,,83,MED,Hybrid,,Sweden,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Shane Pinto,C,12,83,MED,,,United States,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Arthur Kaliyev,R,34,81,MED,,,Uzbekistan,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,James Reimer,G,47,81,LOW,Hybrid,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Ridly Greig,C,71,81,MED,,,Canada,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Michael Amadio,R,22,80,MED,,,Canada,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Philip Tomasino,C,,80,MED,,,Canada,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Nick Cousins,C,21,79,LOW,,,Canada,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Sammy Blais,L,,79,HIGH,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Kurtis MacDermid,L,23,77,MED,,,Canada,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Stephen Halliday,C,83,77,MED,,,Canada,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Lassi Thomson,D,60,76,MED,,,Finland,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Nikolas Matinpalo,D,33,76,MED,,,Finland,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Olle Lycksell,R,15,76,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Tyler Kleven,D,43,76,MED,,,United States,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Carter Yakemchuk,D,58,75,MED,,,Canada,20,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Ryan Suzuki,C,,75,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+31,Xavier Bourgault,R,53,75,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+32,Cameron Crotty,D,5,74,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+33,Graeme Clarke,R,49,74,MED,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+34,Leevi Merilainen,G,1,74,MED,,,Finland,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+35,Christian Kyrou,D,,73,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+36,Hayden Hodgson,R,42,69,LOW,,,Canada,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+37,Oskar Pettersson,R,63,69,MED,,,Sweden,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+38,Tyler Boucher,R,54,69,LOW,,,United States,23,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+39,Philippe Daoust,C,,66,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

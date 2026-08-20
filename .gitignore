@@ -1,0 +1,8 @@
+# Local agent tooling config — not app code
+.claude/
+
+# Full database dumps — large, and shouldn't live in version control
+db_backups/
+
+# Local dev logs
+*.log

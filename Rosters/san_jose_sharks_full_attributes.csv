@@ -1,0 +1,31 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Macklin Celebrini,C,71,93,Med,Playmaker,X-Factor,Canada,20,93,95,93,92,91,86,92,78,82,91,89,82,96,90,90,93,93,88,84,92,91,90,88,95,89,83,83,80,87,75,88,2207
+2,Jacob Trouba,D,,86,Med,Defensive D-man,X-Factor,United States,32,82,82,80,84,83,79,89,55,89,83,82,80,83,82,83,82,81,84,86,82,86,83,88,85,88,85,,92,86,70,90,1987
+3,Darnell Nurse,D,25,85,Med,2 Way D-Man,X-Factor,Canada,31,86,86,83,87,86,78,86,55,88,84,85,80,88,87,88,91,86,86,84,91,89,89,88,91,88,87,,89,88,80,90,2051
+4,Dmitry Orlov,D,9,85,Med,2 Way D-Man,X-Factor,Russia,35,86,87,84,87,87,77,86,55,79,86,86,84,87,87,86,89,87,85,82,86,88,87,88,87,88,81,,87,85,65,87,2012
+5,Mason Marchment,L,,85,Med,Power Forward,X-Factor,Canada,31,86,86,84,87,85,78,86,65,80,82,83,79,88,83,85,87,85,88,81,85,89,89,89,88,88,85,,86,82,83,90,2026
+6,Tyler Toffoli,C,73,85,Med,2 Way Forward,X-Factor,Canada,34,86,85,84,87,86,78,85,65,80,83,89,86,92,88,85,85,85,84,88,85,90,90,89,93,89,80,,83,86,65,85,2028
+7,Michael Kesselring,D,8,84,Med,2 Way D-Man,,United States,26,86,87,84,85,87,76,86,55,79,83,84,79,88,86,86,88,86,88,82,88,89,85,93,90,89,83,,86,82,75,88,2019
+8,Alex Wennberg,C,21,83,Med,2 Way Forward,X-Factor,Sweden,31,89,89,86,88,91,85,86,79,89,87,83,87,83,80,86,84,86,90,87,83,85,83,86,84,86,80,,82,88,65,85,2034
+9,Will Smith,C,2,83,,Playmaker,X-Factor,United States,21,84,84,81,89,83,77,83,68,79,79,85,82,89,84,83,86,82,81,81,85,87,88,87,87,85,78,,81,83,65,84,1976
+10,Kiefer Sherwood,L,44,82,Med,2 Way Forward,X-Factor,United States,31,83,82,82,85,83,79,86,66,81,83,82,81,85,80,83,84,82,84,79,84,86,86,86,86,86,84,,95,82,70,88,1986
+11,Nick Leddy,D,4,82,Med,2 Way D-Man,X-Factor,United States,35,82,83,80,80,83,76,87,55,80,83,84,88,82,83,83,85,81,86,80,85,84,79,88,80,88,78,,80,81,65,86,1948
+12,Yaroslav Askarov,G,30,82,,Hybrid,,Russia,,21,,,84,,,,,,,30,,,89,51,,86,,81,86,,,,,,32,81,,81,,,588
+13,Adam Gaudette,R,81,81,Med,,,United States,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+14,Alex Nedeljkovic,G,33,81,Med,Hybrid,,United States,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Eric Comrie,G,,81,Med,Hybrid,,Canada,31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Barclay Goodrow,R,23,80,Med,,,Canada,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Brett Leason,R,20,80,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Philipp Kurashev,C,96,80,Low,Playmaker,,Switzerland,26,88,89,86,88,88,80,83,74,79,82,85,87,87,80,87,88,89,84,84,88,87,86,88,86,88,79,,80,85,65,84,2018
+19,Ty Dellandrea,C,10,79,Med,,,Canada,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,John Klingberg,D,3,78,Low,,,Sweden,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Michael Misa,C,77,78,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Pavol Regenda,L,84,78,High,,,Slovakia,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Sam Dickinson,D,6,78,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Nolan Allan,D,7,77,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Collin Graf,R,51,75,Low,2 Way Forward,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Ryan Reaves,R,75,75,Med,,,Canada,39,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Zack Ostapchuk,C,63,75,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Ethan Cardwell,R,56,74,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Kyle Keyser,G,85,73,Low,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Andre Gasseau,C,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

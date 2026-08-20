@@ -1,0 +1,31 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes,AttributeSource,GloveLow,StickLow,FiveHole,GloveHigh,StickHigh,PokeCheck,ReboundControl,Vision,Breakaway,Angles,Recover,Potential,Confidence
+1,Alex Ovechkin,L,8,90,MED,Sniper,X-Factor,Russia,40,84,83,82,88,82,76,82,62,80,79,89,83,95,90,86,85,85,93,83,83,94,93,95,94,93,87,,88,85,80,94,2057,Site,,,,,,,,,,,,4,EXACT
+2,Dylan Strome,C,17,89,MED,Playmaker,X-Factor,Canada,29,90,91,88,92,90,84,87,83,82,85,88,83,91,89,86,88,88,82,84,86,89,87,90,90,90,82,,81,87,70,88,2072,Site,,,,,,,,,,,,4.5,HIGH
+3,Jordan Kyrou,R,25,88,MED,Playmaker,X-Factor,Canada,28,90,91,86,91,90,77,83,64,80,80,88,85,90,88,88,93,89,85,84,91,89,88,87,93,87,79,,82,88,65,82,2042,Site,,,,,,,,,,,,4.5,HIGH
+4,Alex Tuch,R,,87,MED,Power Forward,X-Factor,United States,30,87,86,86,87,88,84,88,68,89,90,85,82,90,84,88,89,87,86,89,88,90,86,91,91,91,84,,84,89,70,91,2070,Site,,,,,,,,,,,,4,EXACT
+5,Aliaksei Protas,C,21,87,HIGH,Power Forward,X-Factor,Belarus,25,88,87,87,88,88,81,89,65,83,86,87,85,90,87,86,88,85,86,80,90,88,85,90,89,89,86,,82,84,85,91,2059,Site,,,,,,,,,,,,4.5,HIGH
+6,Jakob Chychrun,D,6,87,MED,2 Way D-Man,X-Factor,United States,28,89,91,87,89,89,78,88,55,82,85,87,80,90,91,88,91,90,89,82,90,90,90,89,93,88,84,,82,86,80,89,2066,Site,,,,,,,,,,,,4,HIGH
+7,Logan Thompson,G,48,86,MED,Hybrid,X-Factor,Canada,29,,,,82,,,,,,,,,,,,,89,,87,90,,,,,,,,,87,,,1384,Goalie: site OVR + estimated attribute profile,88,85,86,90,82,83,84,93,84,85,89,4,HIGH
+8,Martin Fehervary,D,42,86,HIGH,Defensive D-man,,Slovakia,26,83,83,80,85,85,80,93,55,89,84,86,87,85,87,85,85,82,89,86,85,86,87,87,84,87,85,,84,85,80,90,2024,Site,,,,,,,,,,,,4,HIGH
+9,Pierre-Luc Dubois,L,80,86,MED,Power Forward,X-Factor,Canada,28,90,91,87,90,90,84,85,81,85,83,85,80,89,87,88,88,89,92,85,88,88,87,90,87,89,84,,85,87,75,87,2077,Site,,,,,,,,,,,,3.5,MED
+10,Tom Wilson,R,43,86,MED,Power Forward,X-Factor,Canada,32,85,83,90,83,85,80,86,64,88,83,82,80,86,81,84,84,84,83,86,85,88,89,89,86,87,90,,93,87,86,92,2040,Site,,,,,,,,,,,,3.5,EXACT
+11,Matt Roy,D,3,84,LOW,2 Way D-Man,,United States,31,82,80,79,84,83,81,87,60,88,88,81,80,83,80,86,85,85,87,87,86,83,78,88,80,87,85,,87,85,80,87,1994,Site,,,,,,,,,,,,3.5,EXACT
+12,Rasmus Sandin,D,38,84,MED,,,Sweden,26,84,84,82,84,85,78,88,56,85,85,83,82,85,83,85,85,84,85,84,85,86,84,89,84,88,82,,85,84,74,87,1997,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+13,Boone Jenner,C,,83,MED,2 Way Forward,X-Factor,Canada,33,84,84,83,84,84,83,87,77,84,83,85,85,87,84,83,83,81,81,86,83,86,83,87,86,87,83,,85,80,80,88,2012,Site,,,,,,,,,,,,3.5,EXACT
+14,Charlie Lindgren,G,79,83,MED,Hybrid,,United States,32,,,,84,,,,,,,,,,,,,85,,86,86,,,,,,,,,86,,,1334,Goalie: site OVR + estimated attribute profile,79,85,80,87,83,81,85,83,79,87,78,3,EXACT
+15,David Kampf,C,64,82,MED,,,Czechia,31,85,85,84,85,85,80,84,70,81,83,83,83,85,81,85,86,85,84,84,86,86,85,87,86,87,82,,84,84,72,86,2002,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+16,Ryan Leonard,R,9,82,MED,,,United States,21,85,85,84,85,85,80,84,70,81,83,83,83,85,81,85,86,85,84,84,86,86,85,87,86,87,82,,84,84,72,86,2002,Interpolated (estimated from OVR),,,,,,,,,,,,4.5,HIGH
+17,Timothy Liljegren,D,37,82,LOW,2 Way D-Man,,Sweden,27,85,87,80,87,85,80,87,60,87,87,83,83,85,80,87,87,87,85,87,88,83,79,87,80,87,80,,85,85,65,85,1995,Site,,,,,,,,,,,,3.5,LOW
+18,Anthony Beauvillier,L,72,81,LOW,,,Canada,29,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+19,Jonny Brodzinski,C,,80,MED,,,United States,33,84,84,83,83,84,79,83,70,81,83,82,83,84,79,84,85,84,84,84,85,86,84,87,84,87,82,,85,83,73,86,1988,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+20,Justin Holl,D,,80,MED,,,United States,34,80,80,78,81,81,78,86,56,86,84,80,80,81,79,82,82,81,83,81,82,84,80,88,80,87,83,,87,82,75,87,1947,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+21,Vincent Desharnais,D,,79,MED,,,Canada,30,79,79,77,80,80,78,86,56,86,84,79,80,80,78,81,81,80,83,80,82,83,79,87,79,87,83,,87,81,76,87,1935,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+22,Cole Hutson,D,44,78,MED,,,United States,20,78,78,76,79,80,78,85,56,87,84,79,80,79,77,81,81,79,82,80,81,82,78,87,78,87,83,,88,81,76,87,1926,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+23,Ivan Miroshnichenko,L,63,77,MED,,,Russia,22,82,82,82,81,82,78,82,69,80,83,80,83,81,76,83,83,82,83,83,84,84,82,86,82,86,82,,85,81,74,86,1958,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+24,Josh Dunne,C,,77,LOW,,,United States,27,82,82,82,81,82,78,82,69,80,83,80,83,81,76,83,83,82,83,83,84,84,82,86,82,86,82,,85,81,74,86,1958,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+25,Dylan McIlrath,D,52,75,LOW,,,Canada,34,75,75,73,76,77,78,84,57,88,83,76,78,75,75,79,78,77,81,78,79,80,75,86,75,86,83,,89,79,77,87,1888,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+26,Ilya Protas,L,62,75,MED,,,Belarus,20,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+27,Ethen Frank,C,53,71,MED,,,United States,28,78,78,79,75,78,77,80,67,79,82,76,83,75,70,81,80,80,80,82,82,82,79,85,78,84,81,,85,79,76,85,1901,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+28,Justin Sourdif,R,34,68,MED,,,Canada,24,76,76,77,75,76,76,79,67,78,81,76,83,75,70,80,79,78,79,82,81,81,77,85,77,84,81,,86,77,77,84,1883,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+29,Clay Stevenson,G,33,71,--,,,Canada,27,,,,66,,,,,,,,,,,,,65,,75,68,,,,,,,,,74,,,1132,Goalie: fully estimated (no site OVR or attributes),76,73,75,73,68,70,69,73,68,71,68,3,LOW
+30,Jesper Vikman,G,32,70,--,,,,24,,,,61,,,,,,,,,,,,,66,,77,65,,,,,,,,,71,,,1102,Goalie: fully estimated (no site OVR or attributes),71,65,71,70,65,67,67,73,73,69,71,3,LOW

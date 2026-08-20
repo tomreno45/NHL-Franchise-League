@@ -1,0 +1,31 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes,AttributeSource,GloveLow,StickLow,FiveHole,GloveHigh,StickHigh,PokeCheck,ReboundControl,Vision,Breakaway,Angles,Recover,Potential,Confidence
+1,William Nylander,R,88,93,EXACT,Playmaker,X-Factor,Canada,30,92,93,88,93,93,78,83,68,80,80,89,85,94,89,90,93,91,88,88,91,91,91,89,94,88,81,,82,90,65,85,2081,Site,,,,,,,,,,,,4.5,EXACT
+2,Auston Matthews,C,34,92,EXACT,Sniper,X-Factor,United States,28,92,93,90,92,94,88,92,83,89,88,90,86,94,90,90,91,92,87,88,90,94,93,92,94,95,82,,83,87,65,91,2139,Site,,,,,,,,,,,,5,HIGH
+3,John Tavares,C,91,88,HIGH,Sniper,X-Factor,Canada,35,89,90,88,88,89,84,86,85,83,82,87,82,90,89,88,86,90,91,87,87,89,87,89,90,89,83,,85,87,70,88,2078,Site,,,,,,,,,,,,4,EXACT
+4,Matthew Knies,L,23,87,MED,Power Forward,X-Factor,United States,23,85,84,84,85,85,78,86,62,82,81,84,81,89,83,86,85,86,91,83,85,89,88,90,87,90,87,,89,86,80,92,2034,Site,,,,,,,,,,,,4.5,HIGH
+5,Morgan Rielly,D,44,87,MED,2 Way D-Man,X-Factor,Canada,32,89,88,87,93,89,78,88,55,84,84,90,87,93,89,86,89,86,84,84,89,89,86,89,92,88,82,,81,88,70,89,2052,Site,,,,,,,,,,,,4,EXACT
+6,Sergei Bobrovsky,G,,87,HIGH,Hybrid,X-Factor,Russia,37,,,,89,,,,,,,,,,,,,87,,91,85,,,,,,,,,92,,,1398,Goalie: site OVR + estimated attribute profile,83,84,89,90,86,76,86,94,87,95,84,4,EXACT
+7,Anthony Stolarz,G,41,85,LOW,Hybrid,,United States,32,,,,88,,,,,,,,,,,,,88,,84,90,,,,,,,,,84,,,1374,Goalie: site OVR + estimated attribute profile,89,83,85,90,81,83,82,88,82,88,89,3.5,EXACT
+8,Chris Tanev,D,8,85,LOW,Defensive D-man,X-Factor,Canada,36,84,83,83,84,85,82,94,55,93,84,85,86,83,85,85,84,82,87,88,83,85,81,88,83,88,82,,80,84,75,89,2007,Site,,,,,,,,,,,,3.5,EXACT
+9,Jake McCabe,D,22,85,MED,Defensive D-man,,United States,32,83,83,82,84,84,79,90,55,87,84,83,81,84,83,86,84,82,88,85,89,86,86,87,83,87,82,,89,84,65,89,1995,Site,,,,,,,,,,,,3.5,EXACT
+10,Nicholas Paul,L,,85,MED,Power Forward,,Canada,31,87,88,85,86,87,82,87,78,81,83,85,85,87,82,86,84,87,90,83,84,87,84,88,87,88,84,,84,85,77,90,2040,Site,,,,,,,,,,,,4,EXACT
+11,Darren Raddysh,D,43,84,LOW,2 Way D-Man,X-Factor,Canada,30,86,87,84,88,86,75,86,55,79,81,88,86,89,88,84,86,83,85,82,86,89,89,93,85,89,82,,82,82,75,89,2015,Site,,,,,,,,,,,,3.5,EXACT
+12,Jack Roslovic,C,,84,MED,,,United States,29,86,87,85,87,87,81,86,73,82,84,85,83,88,84,86,86,86,86,84,86,88,87,88,87,88,81,,84,84,71,86,2029,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+13,Oliver Ekman-Larsson,D,95,84,MED,,,Sweden,35,84,85,83,85,85,78,88,55,84,85,84,83,86,84,85,86,84,87,83,86,87,85,89,85,88,83,,85,84,76,88,2009,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,EXACT
+14,Calle Jarnkrok,C,19,82,MED,,,Sweden,34,85,85,85,85,85,81,85,73,82,85,84,82,86,83,84,84,85,85,83,84,86,86,87,86,87,81,,84,83,71,85,2006,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+15,Colton Sissons,C,,82,LOW,,,Canada,32,85,85,85,85,85,81,85,73,82,85,84,82,86,83,84,84,85,85,83,84,86,86,87,86,87,81,,84,83,71,85,2006,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+16,Max Domi,C,11,82,MED,Playmaker,,Canada,31,88,88,87,88,87,81,83,75,80,85,79,70,87,80,87,88,88,85,85,88,87,88,87,87,87,85,,85,85,85,85,2033,Site,,,,,,,,,,,,3.5,EXACT
+17,Dakota Joshua,C,81,81,LOW,,,United States,30,84,84,84,85,85,81,85,73,82,85,83,82,85,82,84,84,84,84,83,84,86,85,87,85,87,81,,85,82,71,85,1998,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+18,Teddy Blueger,C,,81,MED,,,Latvia,31,84,84,84,85,85,81,85,73,82,85,83,82,85,82,84,84,84,84,83,84,86,85,87,85,87,81,,85,82,71,85,1998,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+19,Brandon Duhaime,R,,80,MED,,,United States,29,84,84,84,84,84,81,85,73,82,85,83,82,85,81,83,83,83,84,83,83,86,85,87,85,87,80,,85,81,71,85,1991,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+20,Emil Andrae,D,,80,MED,,,Sweden,24,82,82,80,82,83,77,86,55,85,83,81,81,82,80,83,82,81,87,80,83,84,82,87,82,87,84,,86,82,79,88,1965,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+21,Steven Lorentz,C,18,79,MED,,,Canada,30,83,83,84,83,83,81,85,73,82,85,82,82,84,80,83,82,83,84,82,83,85,84,86,84,86,80,,85,81,71,85,1980,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+22,Troy Stecher,D,28,79,MED,,,Canada,32,81,81,79,81,82,77,85,55,85,83,81,81,81,80,82,82,80,87,79,82,84,81,87,81,87,84,,86,82,80,88,1955,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+23,Bo Groulx,C,29,78,MED,,,France,26,83,82,83,83,83,82,85,73,82,86,82,82,83,80,82,82,82,83,82,82,85,84,86,83,86,80,,85,80,71,85,1973,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+24,Zack MacEwen,R,,78,MED,,,Canada,30,83,82,83,83,83,82,85,73,82,86,82,82,83,80,82,82,82,83,82,82,85,84,86,83,86,80,,85,80,71,85,1973,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+25,Vinni Lettieri,C,95,76,EXACT,,,,31,82,81,83,81,81,82,85,73,82,86,80,81,82,78,81,80,81,82,81,81,84,83,86,82,85,80,,85,79,71,84,1953,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+26,Philippe Myers,D,51,75,MED,,,Canada,29,78,78,77,77,79,76,83,55,85,82,77,79,77,76,80,79,77,88,75,80,82,78,86,78,86,85,,87,80,83,89,1914,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+27,Cole McWard,D,4,73,MED,,,,25,76,76,75,76,78,76,82,55,85,82,77,78,77,75,79,77,77,88,74,78,82,76,86,78,86,85,,88,79,85,89,1900,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+28,Ryan Tverberg,C,77,72,MED,,,,24,80,79,81,79,79,82,84,73,82,87,78,80,79,75,79,78,79,81,79,79,82,81,84,80,84,79,,86,76,71,83,1919,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+29,Henrik Rybinski,R,58,69,MED,,,,25,79,79,80,79,79,82,84,74,82,88,78,80,79,75,78,77,78,80,78,77,81,79,84,79,83,78,,86,74,71,83,1908,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+30,Samuel Hlavaj,G,,67,--,,,,25,,,,61,,,,,,,,,,,,,64,,72,67,,,,,,,,,70,,,1078,Goalie: fully estimated (no site OVR or attributes),70,69,68,68,63,65,69,70,67,69,66,3,LOW

@@ -1,0 +1,32 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes,AttributeSource,GloveLow,StickLow,FiveHole,GloveHigh,StickHigh,PokeCheck,ReboundControl,Vision,Breakaway,Angles,Recover,Potential,Confidence
+1,Ilya Sorokin,G,30,93,EXACT,Hybrid,X-Factor,Russia,31,,,,83,,,,,,,,,,,,,96,,94,94,,,,,,,,,94,,,1484,Goalie: site OVR + estimated attribute profile,94,95,90,90,88,89,99,94,87,98,99,4.5,EXACT
+2,Matthew Schaefer,D,48,88,HIGH,,,Canada,18,88,88,86,88,88,78,89,55,84,86,86,83,89,87,87,88,87,87,86,88,89,88,90,88,89,83,,84,86,73,88,2045,Interpolated (estimated from OVR),,,,,,,,,,,,5,HIGH
+3,Adam Pelech,D,3,87,MED,Defensive D-man,X-Factor,Canada,32,85,85,84,84,87,81,94,55,84,92,82,81,84,82,85,83,84,89,88,82,85,82,88,83,87,83,,84,82,78,89,2011,Site,,,,,,,,,,,,3.5,EXACT
+4,Bo Horvat,C,14,87,MED,2 Way Forward,X-Factor,Canada,31,88,89,86,90,88,84,86,85,84,82,89,86,92,88,88,90,87,86,87,91,90,94,89,90,88,84,,83,90,75,88,2094,Site,,,,,,,,,,,,4,EXACT
+5,Ryan Pulock,D,6,87,MED,2 Way D-Man,X-Factor,Canada,31,86,87,84,86,88,79,90,55,89,83,85,87,86,83,86,85,86,87,88,85,90,89,93,84,92,84,,86,85,75,88,2041,Site,,,,,,,,,,,,3.5,EXACT
+6,Mathew Barzal,C,13,86,MED,Playmaker,X-Factor,Canada,29,89,91,85,90,91,78,84,67,81,81,87,86,89,87,86,88,85,88,81,87,87,86,87,85,88,78,,82,81,65,85,2020,Site,,,,,,,,,,,,4.5,HIGH
+7,Brayden Schenn,C,10,85,MED,2 Way Forward,X-Factor,Canada,34,86,86,83,88,86,85,86,81,85,86,84,81,87,85,86,86,86,84,86,86,88,87,88,87,88,87,,89,88,84,88,2061,Site,,,,,,,,,,,,3.5,EXACT
+8,Alexander Romanov,D,28,84,MED,2 Way D-Man,X-Factor,Russia,26,83,84,82,83,84,79,87,55,88,85,82,85,81,81,84,84,84,85,81,84,88,84,92,86,89,83,,91,84,69,88,1996,Site,,,,,,,,,,,,4,MED
+9,Anthony Duclair,L,11,83,LOW,Sniper,,Canada,30,87,88,87,85,86,76,80,65,74,86,85,88,86,80,88,90,89,84,84,93,88,87,89,88,89,77,,75,80,68,85,2006,Site,,,,,,,,,,,,3.5,EXACT
+10,Jean-Gabriel Pageau,C,44,83,LOW,,,Canada,33,86,86,85,86,86,80,85,70,81,83,84,83,86,82,85,86,85,85,84,86,87,86,88,86,87,82,,84,84,72,86,2012,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+11,Kyle Palmieri,C,21,83,MED,2 Way Forward,X-Factor,United States,35,86,86,84,86,86,78,84,65,82,80,85,84,88,84,86,85,87,87,85,85,88,88,88,89,87,82,,83,88,70,86,2017,Site,,,,,,,,,,,,3.5,EXACT
+12,Matias Maccelli,L,,83,MED,Playmaker,,Finland,25,88,89,86,89,89,78,84,70,72,84,86,95,89,75,86,88,88,80,86,87,87,85,88,86,88,78,,80,85,65,80,2008,Site,,,,,,,,,,,,4,MED
+13,Simon Holmstrom,R,92,83,MED,,,Sweden,25,86,86,85,86,86,80,85,70,81,83,84,83,86,82,85,86,85,85,84,86,87,86,88,86,87,82,,84,84,72,86,2012,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+14,Emil Heineman,L,51,82,MED,,,Sweden,24,85,85,84,85,85,80,84,70,81,83,83,83,85,81,85,86,85,84,84,86,86,85,87,86,87,82,,84,84,72,86,2002,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+15,Semyon Varlamov,G,40,82,HIGH,Hybrid,,Russia,38,,,,85,,,,,,,,,,,,,87,,85,87,,,,,,,,,85,,,1335,Goalie: site OVR + estimated attribute profile,80,81,78,84,85,76,88,91,80,83,80,3,EXACT
+16,Adam Boqvist,D,34,81,LOW,,,Sweden,26,81,81,79,82,82,78,87,56,86,84,81,81,82,80,83,83,82,84,82,83,84,81,88,81,87,82,,86,82,75,87,1961,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+17,Carson Soucy,D,4,81,MED,,,Canada,32,81,81,79,82,82,78,87,56,86,84,81,81,82,80,83,83,82,84,82,83,84,81,88,81,87,82,,86,82,75,87,1961,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+18,Casey Cizikas,C,53,81,MED,,,Canada,35,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+19,Ondrej Palat,L,81,81,HIGH,,,Czechia,35,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+20,Scott Mayfield,D,24,81,HIGH,,,United States,33,81,81,79,82,82,78,87,56,86,84,81,81,82,80,83,83,82,84,82,83,84,81,88,81,87,82,,86,82,75,87,1961,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+21,Vitek Vanecek,G,,81,MED,Hybrid,,Czechia,30,,,,84,,,,,,,,,,,,,84,,84,85,,,,,,,,,84,,,1322,Goalie: site OVR + estimated attribute profile,85,84,81,77,84,81,84,79,82,86,78,3.5,EXACT
+22,Calum Ritchie,C,64,80,MED,,,,21,84,84,83,83,84,79,83,70,81,83,82,83,84,79,84,85,84,84,84,85,86,84,87,84,87,82,,85,83,73,86,1988,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+23,Tony DeAngelo,D,77,80,MED,,,United States,30,80,80,78,81,81,78,86,56,86,84,80,80,81,79,82,82,81,83,81,82,84,80,88,80,87,83,,87,82,75,87,1947,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,EXACT
+24,Ethan Bear,D,74,79,EXACT,,,,29,79,79,77,80,80,78,86,56,86,84,79,80,80,78,81,81,80,83,80,82,83,79,87,79,87,83,,87,81,76,87,1935,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+25,Isaiah George,D,36,79,MED,,,,22,79,79,77,80,80,78,86,56,86,84,79,80,80,78,81,81,80,83,80,82,83,79,87,79,87,83,,87,81,76,87,1935,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+26,Mitchell Chaffee,R,,79,MED,,,United States,28,83,83,83,82,83,79,83,69,80,83,81,83,83,78,84,84,83,83,84,85,85,83,87,84,86,82,,85,82,73,86,1975,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+27,Liam Foudy,C,43,77,LOW,,,,26,82,82,82,81,82,78,82,69,80,83,80,83,81,76,83,83,82,83,83,84,84,82,86,82,86,82,,85,81,74,86,1958,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+28,Victor Eklund,L,73,76,MED,,,,19,81,81,81,80,81,78,82,69,80,82,79,83,80,75,83,83,82,82,83,84,84,82,86,82,86,81,,85,81,74,85,1949,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+29,Kyle MacLean,C,32,75,LOW,,,United States,27,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+30,Matthew Kessel,D,,74,MED,,,United States,26,74,75,72,75,76,78,84,57,88,83,76,78,75,75,78,78,76,80,77,78,80,74,86,74,86,83,,89,79,77,87,1879,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+31,Matt Luff,R,39,73,EXACT,,,,29,79,79,80,77,79,78,81,68,79,82,77,83,77,72,82,81,81,81,82,83,83,80,86,80,85,81,,85,80,75,85,1921,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED

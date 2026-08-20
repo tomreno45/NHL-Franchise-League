@@ -1,0 +1,33 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Connor Bedard,C,98,88,MED,Sniper,X-Factor,Canada,21,90,92,86,91,90,79,82,72,80,80,86,82,91,86,88,91,90,85,84,88,91,88,89,91,94,80,,80,90,65,84,2051
+2,Bowen Byram,D,24,85,MED,2 Way D-Man,X-Factor,Canada,25,87,88,84,86,88,77,86,55,82,84,85,81,89,84,89,91,88,89,85,90,87,87,88,86,88,82,,84,87,70,87,2027
+3,Alex Vlasic,D,72,84,MED,Defensive D-man,,United States,25,85,84,84,84,87,80,89,55,85,90,84,88,84,80,87,87,85,87,87,87,87,84,90,84,90,83,,82,87,75,86,2021
+4,Matt Grzelcyk,D,48,84,MED,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+5,Ryan Donato,C,8,84,MED,2 Way Forward,,United States,30,84,84,84,84,85,80,87,71,79,83,84,81,88,83,85,87,85,87,80,86,87,87,87,88,87,81,,86,84,70,84,2007
+6,Teuvo Teravainen,C,86,84,MED,Playmaker,X-Factor,Finland,31,86,85,83,89,85,80,87,68,81,85,87,88,88,85,82,82,83,82,83,82,88,90,88,86,87,78,,81,86,60,83,1997
+7,Spencer Knight,G,30,83,MED,Hybrid,,United States,25,22,,,86,,,,,,,29,,,87,52,,87,,85,87,,,,,,33,82,,85,,,599
+8,Andrew Mangiapane,L,26,82,MED,,,Canada,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+9,Arvid Soderblom,G,40,82,MED,Hybrid,,Sweden,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+10,Frank Nazar,C,91,82,MED,Sniper,X-Factor,United States,22,85,85,84,84,85,83,86,72,84,88,84,82,87,82,85,89,85,83,79,88,86,85,86,84,88,77,,82,80,65,80,1993
+11,Ian Cole,D,,82,HIGH,,,United States,37,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+12,Tyler Bertuzzi,L,59,82,MED,2 Way Forward,X-Factor,Canada,31,84,84,83,85,84,79,85,66,80,83,83,82,86,82,83,83,84,85,82,82,87,88,88,86,87,84,,84,85,80,87,2001
+13,Artyom Levshunov,D,55,81,MED,,,Belarus,20,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+14,Jordan Greenway,L,12,81,MED,,,United States,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Cole Smith,L,,80,MED,,,United States,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Anton Frondell,C,16,79,MED,,,Sweden,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Oliver Moore,C,11,79,MED,,,United States,21,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Ryan Greene,C,20,79,MED,,,Canada,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Sam Rinzel,D,6,79,MED,,,United States,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Kevin Korchinski,D,14,78,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Nick Lardis,L,76,78,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Dominic Toninato,C,25,77,MED,2 Way Forward,,United States,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Ethan Del Mastro,D,38,77,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Brett Seney,L,62,76,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Sacha Boisvert,C,12,76,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Wyatt Kaiser,D,44,76,MED,,,United States,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Connor Mackey,D,,75,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Landon Slaggert,L,84,75,MED,2 Way D-Man,,United States,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Dylan Anhorn,D,,70,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Cavan Fitzgerald,D,79,68,MED,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+31,Dave Nozzolillo,G,40,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+32,Mitchell Weeks,G,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

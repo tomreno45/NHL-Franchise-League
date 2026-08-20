@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  /* Dark navy-to-teal glow, mimicking the console UI's lit background —
+     a soft cyan glow drifting in from the upper-right over a near-black
+     base, rather than a flat single color. */
+  background-color: #060d13;
+  background-image:
+    radial-gradient(ellipse 70% 60% at 85% 0%, rgba(45, 212, 235, 0.16), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 10% 100%, rgba(20, 130, 150, 0.10), transparent 60%),
+    linear-gradient(160deg, #0a1720 0%, #071119 45%, #050b10 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+@layer components {
+  /* The translucent, softly-bordered card look used throughout the
+     reference UI (stat panels, tables, leaderboards) — a little blur so
+     the background glow reads through instead of a flat opaque panel. */
+  .hub-card {
+    background-color: rgba(10, 26, 34, 0.55);
+    border: 1px solid rgba(148, 197, 210, 0.12);
+    backdrop-filter: blur(6px);
+  }
+
+  .hub-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(100, 130, 145);
+  }
+}

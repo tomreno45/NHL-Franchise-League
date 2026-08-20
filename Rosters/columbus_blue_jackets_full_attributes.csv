@@ -1,0 +1,29 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Zach Werenski,D,8,94,EXACT,2 Way D-Man,X-Factor,United States,29,92,92,89,94,91,79,92,55,80,88,91,87,94,92,92,94,91,89,93,93,90,90,89,94,88,83,,80,89,75,89,2108
+2,Kirill Marchenko,R,86,89,MED,Sniper,X-Factor,Russia,26,88,89,86,87,89,80,89,65,80,86,88,85,91,87,88,89,90,83,87,89,90,90,89,91,89,82,,83,87,70,88,2059
+3,Conor Garland,R,83,86,MED,Sniper,X-Factor,United States,30,88,89,85,90,89,79,85,64,83,82,85,82,89,83,87,88,88,92,82,87,87,87,86,88,87,82,,83,87,75,83,2034
+4,Damon Severson,D,78,86,MED,2 Way D-Man,,Canada,32,85,85,84,87,85,79,89,55,82,88,85,80,88,86,85,86,86,83,82,86,87,86,88,85,87,82,,82,83,75,87,2005
+5,Kent Johnson,C,91,86,MED,Playmaker,X-Factor,Canada,23,88,90,85,89,89,77,84,64,80,80,86,84,90,85,85,89,85,85,82,86,87,88,85,88,86,78,,81,82,65,84,2006
+6,Sean Monahan,C,23,86,MED,2 Way Forward,X-Factor,Canada,31,87,86,86,89,87,85,88,82,84,85,87,83,90,88,85,84,85,84,88,84,87,87,88,87,87,81,,82,85,70,88,2047
+7,Adam Fantilli,C,19,85,MED,Power Forward,X-Factor,Canada,21,87,89,85,86,88,83,87,75,83,85,86,84,88,85,87,90,88,85,81,90,88,87,88,90,88,83,,85,85,70,90,2052
+8,Ivan Provorov,D,9,85,MED,2 Way D-Man,,Russia,29,86,87,84,86,88,77,88,55,83,82,85,86,86,83,86,87,86,87,84,88,86,83,88,86,88,83,,81,90,75,87,2018
+9,Valeri Nichushkin,R,,85,MED,Sniper,X-Factor,Russia,31,85,86,83,86,86,77,84,63,80,80,86,86,89,84,86,88,85,84,86,88,88,90,88,87,88,80,,84,81,65,91,2012
+10,Charlie Coyle,C,3,84,MED,Power Forward,,United States,34,85,85,84,85,87,84,88,78,86,85,83,83,85,81,86,83,85,89,88,84,87,84,89,85,88,86,,86,87,80,90,2045
+11,Denton Mateychuk,D,5,84,MED,,,Canada,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+12,Dmitri Voronkov,L,10,84,MED,Power Forward,X-Factor,Russia,25,85,83,85,86,84,80,87,68,82,81,84,80,89,83,83,81,83,84,86,82,88,86,89,88,89,82,,85,84,68,92,2005
+13,Cole Sillinger,C,4,82,LOW,,,United States,23,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+14,Dante Fabbro,D,15,82,MED,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Danton Heinen,L,43,82,MED,,,Canada,31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Egor Zamula,D,6,82,MED,2 Way D-Man,,Russia,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Elvis Merzlikins,G,90,82,MED,Hybrid,,Latvia,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Mathieu Olivier,R,24,82,LOW,Grinder,,United States,29,80,81,80,80,80,78,81,65,87,80,79,80,80,77,83,82,82,88,81,82,84,80,87,82,87,91,,94,82,95,91,1984
+19,Isac Lundestrom,C,21,80,MED,,,Sweden,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Miles Wood,L,11,80,MED,,,United States,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Pheonix Copley,G,,80,MED,Hybrid,,United States,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Erik Gudbranson,D,44,79,LOW,,,Canada,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Ryan Lomberg,L,,79,LOW,,,Canada,31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Brendan Smith,D,7,78,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Jake Christiansen,D,2,78,MED,,,Canada,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Jet Greaves,G,73,73,MED,,,Canada,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Owen Sillinger,C,,73,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Riley Bezeau,R,,71,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

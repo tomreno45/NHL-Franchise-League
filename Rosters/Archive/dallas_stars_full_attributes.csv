@@ -1,0 +1,30 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Mikko Rantanen,R,96,94,EXACT,Sniper,X-Factor,Finland,29,94,94,93,95,92,79,85,70,82,80,90,82,95,92,90,90,91,92,89,89,92,94,93,92,90,87,,84,91,80,91,2126
+2,Miro Heiskanen,D,4,93,MED,2 Way D-Man,X-Factor,Finland,27,90,91,88,89,90,79,93,55,81,86,89,87,92,88,89,90,88,88,91,90,90,87,92,89,90,79,,81,84,65,86,2061
+3,Jake Oettinger,G,29,90,EXACT,Hybrid,X-Factor,United States,27,22,,,86,,,,,,,30,,,91,53,,86,,93,87,,,,,,36,85,,93,,,621
+4,Jason Robertson,L,21,89,MED,Sniper,X-Factor,United States,27,89,88,86,91,89,78,86,64,81,80,88,86,92,86,86,85,87,86,88,84,91,90,91,92,92,84,,83,88,75,89,2059
+5,Matt Duchene,C,95,89,MED,Playmaker,X-Factor,Canada,35,90,91,87,91,90,81,84,78,80,80,89,87,91,89,89,90,89,90,85,90,88,86,88,91,88,82,,82,87,75,85,2074
+6,Thomas Harley,D,55,88,MED,2 Way D-Man,X-Factor,United States,24,89,91,88,89,89,78,90,55,81,86,89,87,89,90,89,92,90,87,84,90,88,85,88,92,87,83,,81,87,75,89,2062
+7,Esa Lindell,D,23,87,LOW,Defensive D-man,X-Factor,Finland,32,82,81,81,83,83,81,95,55,86,88,85,89,83,82,84,83,84,84,86,84,87,87,88,86,87,83,,82,88,70,91,2006
+8,Roope Hintz,C,24,87,MED,2 Way Forward,X-Factor,Finland,29,87,86,86,89,87,84,89,78,83,84,87,83,91,86,88,94,85,82,89,90,88,88,89,87,88,83,,82,85,75,89,2065
+9,Tyler Seguin,C,91,86,MED,Playmaker,X-Factor,Canada,34,86,85,86,89,85,81,85,76,79,82,88,84,92,88,84,83,81,87,85,85,89,88,91,85,91,79,,82,79,65,89,2022
+10,Wyatt Johnston,C,53,86,MED,Playmaker,X-Factor,Canada,23,87,87,86,88,86,83,88,76,83,83,88,86,91,86,88,90,87,86,87,89,88,88,87,88,87,81,,82,89,68,84,2052
+11,Jamie Benn,L,14,85,HIGH,Power Forward,Back At Ya,Canada,37,87,85,88,87,87,86,87,86,82,90,84,80,87,85,86,85,84,90,85,85,88,87,89,88,89,84,,89,80,75,90,2060
+12,Tyler Myers,D,57,84,LOW,,,United States,36,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+13,Casey DeSmith,G,1,83,MED,Hybrid,,United States,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+14,Michael Bunting,L,58,82,LOW,2 Way Forward,,Canada,30,88,88,87,88,88,80,85,67,80,86,83,82,88,80,87,88,88,85,85,88,88,87,88,88,88,81,,85,85,70,85,2029
+15,Radek Faksa,C,12,82,MED,,,Czechia,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Sam Steel,C,18,81,MED,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Colin Blackwell,C,15,80,LOW,,,United States,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Joel Kiviranta,L,,80,MED,Sniper,,Finland,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Justin Hryckowian,C,49,79,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Lian Bichsel,D,6,79,MED,,,Switzerland,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Nathan Bastian,R,11,79,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Nils Lundkvist,D,5,79,MED,,,Sweden,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Oskar Back,C,10,79,MED,,,Sweden,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Adam Erne,L,73,78,MED,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Kyle Capobianco,D,20,77,EXACT,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Arttu Hyry,R,25,75,MED,,,Finland,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Artem Shlaine,C,,69,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Ben Kraws,G,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Brandon Halverson,G,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

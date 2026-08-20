@@ -1,0 +1,34 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Clayton Keller,C,9,90,MED,Playmaker,X-Factor,United States,28,91,92,87,94,91,77,83,66,80,80,89,83,94,89,88,90,88,85,87,88,90,92,87,92,87,80,,81,89,65,84,2054
+2,Logan Cooley,C,92,88,MED,Playmaker,X-Factor,United States,22,89,90,86,91,89,80,85,74,81,81,86,81,91,87,87,91,87,86,81,90,88,91,84,90,85,79,,83,86,65,81,2036
+3,MacKenzie Weegar,D,52,88,MED,2 Way D-Man,X-Factor,Canada,32,90,90,88,90,90,80,89,55,88,89,87,84,86,90,89,91,90,83,89,90,89,90,87,90,87,85,,91,90,70,87,2074
+4,Mikhail Sergachev,D,98,88,MED,2 Way D-Man,X-Factor,Russia,28,89,89,87,90,89,78,88,55,85,84,88,83,92,89,87,88,86,87,89,87,90,89,90,89,90,86,,86,87,78,92,2069
+5,Vincent Trocheck,C,,88,MED,2 Way Forward,X-Factor,United States,33,89,89,88,89,90,88,91,85,87,87,86,82,90,87,87,86,89,83,86,90,88,90,87,88,87,83,,89,91,65,85,2081
+6,Dylan Guenther,R,11,87,MED,Sniper,X-Factor,Canada,23,87,87,85,88,87,79,86,65,82,83,87,82,92,86,85,89,84,81,82,88,90,90,89,90,89,78,,83,82,60,85,2015
+7,Nick Schmaltz,C,8,86,MED,Playmaker,X-Factor,United States,30,90,91,88,90,91,81,83,72,83,84,87,87,87,88,86,88,88,83,86,87,88,90,88,87,87,81,,81,89,70,85,2053
+8,Karel Vejmelka,G,70,85,MED,Hybrid,,Czechia,30,21,,,84,,,,,,,29,,,87,52,,84,,91,86,,,,,,36,87,,91,,,610
+9,Anders Lee,L,,84,MED,Power Forward,X-Factor,United States,36,84,83,83,85,84,77,83,65,82,79,84,82,87,83,85,83,84,92,85,83,87,86,88,87,87,86,,86,86,80,90,2013
+10,John Marino,D,6,84,MED,,,United States,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+11,Barrett Hayton,C,27,83,MED,2 Way Forward,X-Factor,Canada,26,85,85,83,85,85,83,87,81,81,83,85,81,88,85,85,86,84,83,86,87,85,82,87,85,87,82,,82,84,75,85,2017
+12,Brandon Tanev,L,13,83,LOW,,,Canada,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+13,Jack McBain,C,22,82,LOW,Grinder,X-Factor,Canada,26,83,83,82,81,84,81,84,74,83,83,81,80,82,80,83,83,83,84,82,83,85,83,87,82,86,88,,93,82,87,88,1999
+14,Lawson Crouse,L,67,82,HIGH,Power Forward,,Canada,29,85,84,87,84,85,77,80,67,78,84,79,75,83,80,87,88,84,89,84,89,88,86,89,86,89,86,,89,85,80,89,2014
+15,Nate Schmidt,D,88,82,LOW,,,United States,35,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Kevin Stenlund,C,82,80,MED,,,Sweden,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Michael Carcone,L,53,80,MED,,,Canada,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Andrew Peeke,D,,79,LOW,,,United States,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Daniil But,L,19,78,MED,,,Russia,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Dmitri Simashev,D,26,78,MED,,,Russia,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Kailer Yamamoto,R,56,78,MED,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Liam O’Brien,C,38,78,LOW,,,Canada,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Maveric Lamoureux,D,10,78,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Andrew Agozzino,L,36,76,EXACT,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Joshua Roy,R,89,76,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Kevin Rooney,C,25,76,MED,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Nick DeSimone,D,57,76,MED,,,United States,31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Ben McCartney,L,62,70,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Cameron Hebig,C,78,67,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Terrell Goldsmith,D,54,62,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+31,Anson Thornton,G,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+32,Colten McIntyre,G,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+33,Jaxson Stauber,G,33,,,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

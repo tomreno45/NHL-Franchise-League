@@ -1,0 +1,35 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Igor Shesterkin,G,31,93,Exact,Hybrid,X-Factor,Russia,30,22,,,88,,,,,,,31,,,92,56,,92,,94,93,,,,,,35,83,,94,,,636
+2,Adam Fox,D,23,91,Exact,Offensive D-man,X-Factor,United States,28,92,93,91,92,93,77,87,55,82,85,89,83,94,91,89,87,91,91,88,86,89,86,89,92,88,81,,81,88,70,85,2068
+3,J.T. Miller,L,8,89,Med,Power Forward,X-Factor,United States,33,92,91,90,93,92,86,89,84,85,84,87,81,92,89,87,86,86,90,89,86,90,91,92,85,92,86,,88,87,75,92,2109
+4,Braden Schneider,D,4,86,Med,Defensive D-man,,Canada,24,84,84,82,84,85,79,91,55,85,84,85,86,85,83,84,86,84,84,79,87,86,83,87,87,87,86,,90,83,80,90,2011
+5,Mika Zibanejad,C,93,86,,Sniper,X-Factor,Sweden,33,88,88,86,90,88,85,88,80,82,89,87,86,88,86,86,86,86,82,90,86,90,89,90,88,91,84,,82,90,75,88,2074
+6,Pavel Dorofeyev,L,16,86,Med,Sniper,X-Factor,Russia,25,86,86,85,84,87,78,85,63,80,82,85,82,88,85,86,86,87,90,83,84,90,91,88,91,88,78,,81,83,65,84,2008
+7,Alexis Lafreniere,L,13,85,Med,Playmaker,X-Factor,Canada,24,88,89,86,88,89,78,83,66,80,81,85,83,87,84,85,89,86,86,79,87,88,86,88,89,87,82,,85,87,70,85,2020
+8,Marcus Pettersson,D,,85,Med,Defensive D-man,,Sweden,30,84,84,83,85,85,79,92,55,84,86,83,81,85,84,84,84,83,85,87,83,86,86,88,83,88,82,,84,87,70,87,1999
+9,Oliver Bjorkstrand,R,,85,Med,Sniper,,Denmark,31,88,87,87,89,89,80,87,65,78,89,89,95,88,85,86,87,87,84,83,88,88,87,88,87,88,80,,80,90,65,84,2037
+10,Sean Durzi,D,,85,Med,2 Way D-Man,X-Factor,Canada,27,87,87,86,87,87,78,87,55,85,83,85,80,90,86,86,88,87,84,81,88,87,86,89,86,88,80,,82,81,70,85,2008
+11,Vladislav Gavrikov,D,44,85,Low,Defensive D-man,,Russia,30,82,81,81,82,83,80,92,55,84,89,84,84,84,83,84,85,83,82,84,84,88,88,88,86,88,85,,82,89,80,89,2006
+12,Will Cuylle,L,50,85,Med,Power Forward,X-Factor,Canada,24,83,82,82,84,85,78,85,65,83,80,83,81,87,82,85,86,85,86,81,86,88,86,88,88,88,87,,94,83,80,90,2017
+13,Jonathan Quick,G,32,83,High,Hybrid,,United States,40,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+14,Joonas Korpisalo,G,,82,Low,Hybrid,,Finland,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Taylor Raddysh,R,14,82,Med,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Joe Veleno,C,,81,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Noah Laba,C,42,80,Med,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Tye Kartye,L,24,80,Med,,,Canada,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Gabe Perreault,R,94,79,Med,,,Canada,21,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Urho Vaakanainen,D,18,79,Med,,,Finland,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Marc Del Gaizo,D,,78,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Matt Rempe,C,73,77,Med,,,Canada,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Adam Sykora,L,38,76,Med,,,Slovakia,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Dennis Cholowski,D,44,75,Low,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Matthew Robertson,D,29,75,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Vincent Iorio,D,6,75,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Drew Fortescue,D,45,74,Med,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Jaroslav Chmelar,R,49,74,Med,,,Czechia,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Anton Blidh,L,25,73,Exact,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Massimo Rizzo,C,,70,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+31,Cole Beaudoin,C,,69,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+32,William Trudeau,D,,69,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+33,Dylan Garand,G,33,,,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+34,Spencer Martin,G,41,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

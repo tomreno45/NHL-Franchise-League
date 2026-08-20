@@ -1,0 +1,37 @@
+﻿Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Roman Josi,D,59,92,EXACT,2 Way D-Man,X-Factor,Switzerland,36,92,92,90,92,93,80,92,55,85,87,90,84,94,92,91,93,92,93,87,91,92,93,93,91,91,81,,83,84,70,88,2105
+2,Filip Forsberg,L,9,89,MED,Sniper,X-Factor,Sweden,31,90,90,90,91,90,79,85,64,81,85,87,81,91,88,89,89,92,90,89,87,89,88,89,90,90,83,,87,88,70,87,2072
+3,Juuse Saros,G,74,88,EXACT,Hybrid,X-Factor,Finland,31,22,,,89,,,,,,,29,,,87,55,,91,,94,92,,,,,,35,83,,94,,,630
+4,Brady Skjei,D,76,87,MED,2 Way D-Man,,United States,32,85,84,83,86,85,78,89,55,80,86,86,81,89,87,87,89,86,83,85,90,90,92,88,91,88,85,,82,89,80,88,2036
+5,Jonathan Marchessault,C,81,86,HIGH,Playmaker,X-Factor,Canada,35,87,87,84,90,87,77,83,66,79,80,86,82,90,85,86,88,86,85,86,86,90,90,88,90,92,80,,84,87,65,84,2024
+6,Steven Stamkos,C,91,86,MED,Playmaker,X-Factor,Canada,36,87,88,84,89,87,80,83,77,81,80,86,81,89,87,86,85,85,83,87,91,92,93,93,90,92,84,,84,88,77,86,2060
+7,Ryan O’Reilly,C,90,85,MED,2 Way Forward,X-Factor,Canada,35,87,86,85,89,87,87,88,85,86,88,87,87,87,86,85,82,85,85,89,83,88,90,88,86,88,83,,82,88,75,88,2063
+8,Nicolas Hague,D,41,84,MED,Defensive D-man,,Canada,27,82,82,81,81,83,78,90,55,81,84,81,82,82,80,83,81,82,90,79,81,88,86,91,84,90,83,,86,82,75,88,1976
+9,Ross Colton,C,20,84,HIGH,Grinder,,United States,29,84,84,84,84,84,83,85,75,84,87,81,80,84,80,85,85,85,88,80,86,86,84,87,84,87,84,,89,85,75,88,2014
+10,Alexander Kerfoot,C,,83,MED,2 Way Forward,,Canada,31,85,85,84,85,86,84,88,74,88,87,84,85,85,81,85,84,84,85,87,84,86,85,87,84,87,79,,83,85,65,84,2012
+11,Ilya Lyubushkin,D,,82,MED,,,Russia,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+12,Luke Evangelista,R,77,82,MED,2 Way Forward,,Canada,24,87,88,85,88,87,76,84,61,79,80,84,81,88,82,84,87,84,87,79,84,85,82,85,87,85,78,,82,81,65,83,1974
+13,Nick Perbix,D,48,82,MED,2 Way D-Man,,United States,28,85,86,84,85,86,76,85,55,81,81,85,83,86,85,85,86,84,89,80,85,86,83,88,86,88,81,,84,81,70,87,1988
+14,Nils Hoglander,L,21,82,MED,,,Sweden,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Justin Barron,D,20,81,MED,,,Canada,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Jack Drury,C,,80,LOW,,,United States,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Justus Annunen,G,29,80,MED,Hybrid,,Finland,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Matthew Wood,R,71,80,MED,,,Canada,21,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Ryan Ufko,D,85,79,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Tyson Jost,C,17,79,MED,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Adam Edstrom,C,84,78,MED,,,Sweden,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Joakim Kemell,R,25,76,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Kevin Gravel,D,5,76,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Jack Ahcan,D,,75,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Oasiz Wiesblatt,C,97,75,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Reid Schaefer,L,49,75,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Chase Bradley,L,38,72,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Cole O’Hara,R,65,72,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Ozzy Wiesblatt,C,89,72,MED,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Adam Wilsby,D,83,71,MED,,,Sweden,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+31,Christoffer Sedoff,D,44,69,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+32,Hunter Skinner,D,,69,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+33,Isaac Ratcliffe,L,76,69,HIGH,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+34,Aiden Fink,R,18,--,--,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+35,Isak Posch,G,35,--,--,,,Sweden,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+36,Ryker Lee,R,,--,--,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

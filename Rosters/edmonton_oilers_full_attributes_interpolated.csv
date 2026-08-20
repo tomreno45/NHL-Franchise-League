@@ -1,0 +1,32 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes,AttributeSource,GloveLow,StickLow,FiveHole,GloveHigh,StickHigh,PokeCheck,ReboundControl,Vision,Breakaway,Angles,Recover,Potential,Confidence
+1,Connor McDavid,C,97,98,Exact,Playmaker,X-Factor,Canada,29,96,97,93,98,97,85,90,82,80,87,92,83,98,95,94,97,96,93,88,98,92,89,91,95,92,82,,84,89,65,90,2167,Site,,,,,,,,,,,,5,HIGH
+2,Leon Draisaitl,C,29,96,Exact,Sniper,X-Factor,Germany,30,94,94,90,94,96,84,89,84,80,84,90,82,97,92,92,93,92,95,89,92,94,94,92,94,94,85,,84,90,70,94,2155,Site,,,,,,,,,,,,5,EXACT
+3,Evan Bouchard,D,2,88,High,Offensive D-man,X-Factor,Canada,26,91,90,88,93,91,77,84,55,80,89,89,84,90,92,88,91,90,84,85,89,93,94,95,90,92,82,,82,90,70,87,2075,Site,,,,,,,,,,,,4.5,HIGH
+4,Frederik Andersen,G,,87,Med,Hybrid,,Denmark,36,,,,88,,,,,,,,,,,,,85,,82,86,,,,,,,,,82,,,1392,Goalie: site OVR + estimated attribute profile,88,90,81,88,89,82,95,99,82,90,85,3.5,EXACT
+5,Jake Walman,D,96,87,Med,2 Way D-Man,X-Factor,Canada,30,87,88,86,86,89,79,89,55,87,85,86,81,89,87,87,88,87,85,87,87,90,90,92,89,89,81,,82,84,70,88,2040,Site,,,,,,,,,,,,3.5,EXACT
+6,Mattias Ekholm,D,14,87,Med,Defensive D-man,X-Factor,Sweden,36,87,87,85,87,87,80,93,55,84,88,86,82,88,87,87,88,87,86,85,88,89,91,88,88,87,84,,83,85,80,89,2048,Site,,,,,,,,,,,,3.5,EXACT
+7,Zach Hyman,L,18,87,Med,Power Forward,X-Factor,Canada,34,87,84,94,85,86,77,86,63,80,79,86,81,92,86,88,87,87,92,86,88,89,88,89,90,90,83,,84,85,70,92,2044,Site,,,,,,,,,,,,4,EXACT
+8,Ryan Nugent-Hopkins,C,93,86,Med,Playmaker,X-Factor,Canada,33,88,88,85,90,88,83,88,74,83,85,86,84,90,85,85,84,85,83,88,84,87,85,87,89,87,81,,82,89,67,85,2035,Site,,,,,,,,,,,,3.5,EXACT
+9,Tristan Jarry,G,35,86,Med,Hybrid,,Canada,31,,,,85,,,,,,,,,,,,,87,,88,87,,,,,,,,,83,,,1382,Goalie: site OVR + estimated attribute profile,83,91,82,91,84,78,91,90,88,89,85,3.5,EXACT
+10,Connor Murphy,D,5,83,Med,Defensive D-man,,United States,33,81,81,80,81,82,79,88,55,88,84,81,80,82,80,82,82,81,84,81,81,85,84,87,82,87,84,,88,83,77,88,1966,Site,,,,,,,,,,,,3,EXACT
+11,Jason Dickinson,C,16,82,Med,2 Way Forward,,Canada,31,83,83,82,81,84,86,88,80,86,89,81,81,82,80,84,83,82,87,87,83,85,83,87,84,87,81,,86,82,70,87,2004,Site,,,,,,,,,,,,3,EXACT
+12,Trent Frederic,C,10,82,Med,Power Forward,,United States,28,83,83,82,82,84,80,84,70,84,82,81,81,83,79,82,82,83,86,79,82,86,85,87,84,87,87,,90,81,86,89,1995,Site,,,,,,,,,,,,3.5,MED
+13,Adam Henrique,C,19,81,Med,,,Canada,36,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+14,Connor Ingram,G,39,81,Med,Hybrid,,Canada,29,,,,85,,,,,,,,,,,,,88,,85,88,,,,,,,,,85,,,1317,Goalie: site OVR + estimated attribute profile,78,77,82,80,86,74,79,79,84,85,82,3.5,MED
+15,Kasperi Kapanen,R,42,81,High,,,Finland,30,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+16,Mathieu Joseph,R,,81,Med,,,Canada,29,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+17,Matt Savoie,C,22,81,Med,,,Canada,22,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,4.5,HIGH
+18,Mattias Janmark,C,13,80,Med,,,Sweden,33,84,84,83,83,84,79,83,70,81,83,82,83,84,79,84,85,84,84,84,85,86,84,87,84,87,82,,85,83,73,86,1988,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+19,Curtis Lazar,C,20,79,Low,,,Canada,31,83,83,83,82,83,79,83,69,80,83,81,83,83,78,84,84,83,83,84,85,85,83,87,84,86,82,,85,82,73,86,1975,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+20,Max Jones,L,46,79,Med,,,United States,28,83,83,83,82,83,79,83,69,80,83,81,83,83,78,84,84,83,83,84,85,85,83,87,84,86,82,,85,82,73,86,1975,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+21,Vasily Podkolzin,R,92,79,Med,,,Russia,25,83,83,83,82,83,79,83,69,80,83,81,83,83,78,84,84,83,83,84,85,85,83,87,84,86,82,,85,82,73,86,1975,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+22,Colton Dach,C,34,78,Med,,,Canada,23,82,82,82,81,82,79,83,69,80,83,81,83,82,77,83,84,83,83,83,84,85,83,87,83,86,82,,85,82,73,86,1966,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+23,Ty Emberson,D,49,78,Med,Playmaker,,United States,26,78,78,76,79,80,78,85,56,87,84,79,80,79,77,81,81,79,82,80,81,82,78,87,78,87,83,,88,81,76,87,1926,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+24,Spencer Stastney,D,24,77,Med,2 Way D-Man,,United States,26,77,77,75,78,79,78,85,56,87,84,77,79,77,76,80,80,78,82,79,80,82,77,87,77,86,83,,88,80,76,87,1910,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+25,Josh Samanski,C,81,76,Low,,,Germany,24,81,81,81,80,81,78,82,69,80,82,79,83,80,75,83,83,82,82,83,84,84,82,86,82,86,81,,85,81,74,85,1949,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+26,Ryan Shea,D,,76,Med,,,United States,29,76,76,74,77,78,78,85,57,87,83,77,79,76,75,79,79,78,81,78,80,81,76,87,76,86,83,,88,80,76,87,1899,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+27,Quinn Hutson,R,28,75,Med,,,,24,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+28,Connor Ungar,G,32,67,,,,,24,,,,56,,,,,,,,,,,,,64,,68,66,,,,,,,,,73,,,1056,Goalie: fully estimated (no site OVR or attributes),63,63,67,71,70,62,68,65,65,65,70,3,LOW
+29,David Tomasek,R,86,72,,,,,30,78,78,79,76,78,77,80,68,79,82,77,83,76,71,81,81,80,81,82,82,82,79,85,79,85,81,,85,79,75,85,1908,"Estimated (NHL/AHL performance, no site rating)",,,,,,,,,,,,3,EXACT
+30,Devon Levi,G,,79,,,,,24,,,,72,,,,,,,,,,,,,77,,86,73,,,,,,,,,88,,,1271,Goalie: fully estimated (no site OVR or attributes),80,75,74,86,80,75,84,82,81,77,81,3.5,MED
+31,Owen Michaels,C,27,68,,,,,24,76,76,77,75,76,76,79,67,78,81,76,83,75,70,80,79,78,79,82,81,81,77,85,77,84,81,,86,77,77,84,1883,"Estimated (NHL/AHL performance, no site rating)",,,,,,,,,,,,3,LOW

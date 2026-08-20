@@ -1,0 +1,31 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes,AttributeSource,GloveLow,StickLow,FiveHole,GloveHigh,StickHigh,PokeCheck,ReboundControl,Vision,Breakaway,Angles,Recover,Potential,Confidence
+1,Brandon Montour,D,62,87,Med,2 Way D-Man,X-Factor,Canada,32,88,89,86,89,87,77,87,55,81,84,87,81,92,89,88,93,87,84,84,93,93,93,93,93,91,83,,83,89,73,86,2062,Site,,,,,,,,,,,,4,EXACT
+2,Vince Dunn,D,29,87,Med,2 Way D-Man,X-Factor,Canada,29,90,91,87,92,90,77,88,55,81,83,88,83,92,89,87,88,87,89,84,87,91,91,92,88,91,81,,81,84,70,87,2050,Site,,,,,,,,,,,,4,HIGH
+3,Jared McCann,L,19,86,Med,2 Way Forward,X-Factor,Canada,30,88,88,86,89,88,81,87,69,83,84,87,86,90,86,86,89,85,83,86,88,90,88,90,90,91,81,,82,87,68,85,2048,Site,,,,,,,,,,,,4,EXACT
+4,Chandler Stephenson,C,9,85,Med,2 Way Forward,X-Factor,Canada,32,89,89,85,91,89,85,87,83,83,87,86,86,89,83,86,85,85,84,89,85,87,87,87,84,88,82,,82,89,70,86,2053,Site,,,,,,,,,,,,3.5,EXACT
+5,Joey Daccord,G,35,85,High,Hybrid,,United States,29,,,,90,,,,,,,,,,,,,85,,89,88,,,,,,,,,89,,,1375,Goalie: site OVR + estimated attribute profile,80,89,87,86,82,82,84,87,82,88,87,4,HIGH
+6,Jordan Eberle,R,7,85,Low,Sniper,Spin-O-Rama,Canada,36,88,90,87,87,87,78,84,65,77,85,84,86,87,80,86,88,89,84,85,85,88,87,88,88,87,79,,80,85,65,84,2010,Site,,,,,,,,,,,,3.5,EXACT
+7,Matty Beniers,C,10,85,Med,2 Way Forward,X-Factor,United States,23,89,90,87,87,90,85,88,79,87,84,86,88,87,83,86,88,87,85,84,86,88,89,87,87,87,81,,83,88,68,86,2055,Site,,,,,,,,,,,,4.5,HIGH
+8,Adam Larsson,D,6,84,Med,Defensive D-man,,Sweden,33,84,84,81,86,85,78,89,55,87,82,84,83,85,83,85,85,83,84,87,86,88,89,87,87,87,83,,86,89,70,88,2008,Site,,,,,,,,,,,,3.5,EXACT
+9,Eeli Tolvanen,R,20,84,Low,Sniper,,Finland,27,88,89,88,85,88,77,83,65,75,85,86,90,88,80,86,85,89,85,85,85,90,87,91,88,92,79,,80,85,65,85,2018,Site,,,,,,,,,,,,3.5,LOW
+10,Ryan Lindgren,D,55,84,Med,Defensive D-man,,United States,28,79,80,77,80,80,81,88,55,90,90,77,70,80,80,87,86,86,87,87,87,82,76,87,77,87,84,,88,85,75,88,1966,Site,,,,,,,,,,,,3.5,MED
+11,Ryker Evans,D,41,84,Med,,,Canada,24,84,84,82,84,85,78,88,56,85,85,83,82,85,83,85,85,84,85,84,85,86,84,89,84,88,82,,85,84,74,87,1997,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+12,Frederick Gaudreau,C,89,83,Med,,,Canada,33,86,86,85,86,86,80,85,70,81,83,84,83,86,82,85,86,85,85,84,86,87,86,88,86,87,82,,84,84,72,86,2012,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+13,Kaapo Kakko,R,84,83,Low,,,Finland,25,86,86,85,86,86,80,85,70,81,83,84,83,86,82,85,86,85,85,84,86,87,86,88,86,87,82,,84,84,72,86,2012,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,LOW
+14,Philipp Grubauer,G,31,83,Low,Hybrid,,Germany,34,,,,84,,,,,,,,,,,,,85,,86,86,,,,,,,,,86,,,1341,Goalie: site OVR + estimated attribute profile,81,87,82,84,84,72,84,87,82,87,84,3,EXACT
+15,Shane Wright,C,51,82,Med,,,Canada,22,85,85,84,85,85,80,84,70,81,83,83,83,85,81,85,86,85,84,84,86,86,85,87,86,87,82,,84,84,72,86,2002,Interpolated (estimated from OVR),,,,,,,,,,,,4.5,HIGH
+16,Bobby McMann,C,74,81,Low,,,Canada,30,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+17,Mackie Samoskevich,R,11,80,Med,,,United States,23,84,84,83,83,84,79,83,70,81,83,82,83,84,79,84,85,84,84,84,85,86,84,87,84,87,82,,85,83,73,86,1988,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+18,Matt Murray,G,30,80,Med,Hybrid,,Canada,32,,,,84,,,,,,,,,,,,,83,,84,84,,,,,,,,,83,,,1295,Goalie: site OVR + estimated attribute profile,79,76,82,79,80,73,85,84,78,80,81,3,EXACT
+19,Cale Fleury,D,8,78,Low,,,Canada,27,78,78,76,79,80,78,85,56,87,84,79,80,79,77,81,81,79,82,80,81,82,78,87,78,87,83,,88,81,76,87,1926,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+20,Joshua Mahura,D,28,78,Med,,,Canada,28,78,78,76,79,80,78,85,56,87,84,79,80,79,77,81,81,79,82,80,81,82,78,87,78,87,83,,88,81,76,87,1926,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+21,Ben Meyers,C,59,77,Med,,,United States,27,82,82,82,81,82,78,82,69,80,83,80,83,81,76,83,83,82,83,83,84,84,82,86,82,86,82,,85,81,74,86,1958,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+22,Berkly Catton,C,27,77,Med,,,Canada,20,82,82,82,81,82,78,82,69,80,83,80,83,81,76,83,83,82,83,83,84,84,82,86,82,86,82,,85,81,74,86,1958,Interpolated (estimated from OVR),,,,,,,,,,,,4,HIGH
+23,Ryan Winterton,C,26,76,Med,,,Canada,22,81,81,81,80,81,78,82,69,80,82,79,83,80,75,83,83,82,82,83,84,84,82,86,82,86,81,,85,81,74,85,1949,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+24,Curtis Douglas,C,,75,Med,,,Canada,26,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+25,Jacob Melanson,R,63,75,Med,,,,23,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+26,Jani Nyman,R,38,75,Med,,,,22,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,HIGH
+27,Logan Morrison,C,96,75,Med,,,,24,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+28,Oscar Fisker Molgaard,C,78,75,Med,,,,21,80,80,81,79,80,78,81,68,80,82,79,83,79,74,82,82,82,82,83,83,83,81,86,81,85,81,,85,81,74,85,1937,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+29,Nikke Kokko,G,39,73,,,,,22,,,,62,,,,,,,,,,,,,70,,76,72,,,,,,,,,80,,,1171,Goalie: fully estimated (no site OVR or attributes),75,78,71,79,69,71,69,72,73,76,78,3,LOW
+30,Victor Ostman,G,1,75,,,,,25,,,,63,,,,,,,,,,,,,68,,78,77,,,,,,,,,75,,,1193,Goalie: fully estimated (no site OVR or attributes),76,77,72,72,74,71,79,79,73,81,78,3,LOW

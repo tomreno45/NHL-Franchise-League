@@ -1,0 +1,34 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Artemi Panarin,L,10,92,EXACT,Playmaker,X-Factor,Russia,34,92,94,87,94,93,77,85,62,79,83,91,87,95,90,88,93,91,86,81,89,91,92,89,93,88,81,,81,90,65,86,2073
+2,Adrian Kempe,R,9,88,MED,Sniper,X-Factor,Sweden,29,88,90,85,89,89,78,86,65,81,80,86,82,91,86,88,92,87,82,89,92,90,93,87,91,87,84,,85,89,75,87,2060
+3,Anze Kopitar,C,11,88,LOW,2 Way Forward,X-Factor,Serbia and Montenegro,38,90,90,86,92,90,86,91,86,86,82,89,90,91,87,86,84,85,86,89,84,89,88,91,86,91,83,,82,90,70,90,2087
+4,Drew Doughty,D,8,88,LOW,2 Way D-Man,X-Factor,Canada,36,87,87,86,88,87,79,91,55,83,85,86,81,89,87,85,86,82,87,84,84,89,90,92,83,90,82,,82,82,75,88,2024
+5,Darcy Kuemper,G,35,87,HIGH,Hybrid,,Canada,36,21,,,85,,,,,,,31,,,92,53,,88,,88,89,,,,,,35,85,,88,,,615
+6,Kevin Fiala,L,22,87,MED,Sniper,X-Factor,Switzerland,30,89,93,87,88,88,77,84,65,78,81,86,81,87,89,87,87,90,88,83,86,90,92,89,91,88,80,,83,88,65,85,2036
+7,Mats Zuccarello,R,,87,HIGH,Playmaker,X-Factor,Norway,38,89,88,85,93,88,79,86,66,82,83,87,83,92,87,83,84,84,82,82,83,89,88,88,90,88,79,,82,86,65,84,2019
+8,Quinton Byfield,R,55,86,MED,Power Forward,X-Factor,Canada,23,89,90,87,88,89,82,89,73,80,84,85,81,89,84,88,89,88,89,84,89,88,86,89,87,89,82,,83,87,70,88,2052
+9,Brandt Clarke,D,92,85,MED,Offensive D-man,X-Factor,Canada,23,88,89,85,88,89,77,86,55,83,82,86,80,90,87,85,88,84,84,82,85,87,85,89,87,88,78,,80,80,67,85,1998
+10,Mikey Anderson,D,44,85,MED,2 Way D-Man,,United States,27,82,82,81,82,82,79,90,55,83,88,83,85,82,82,84,83,83,85,84,83,85,85,85,83,86,84,,87,88,75,86,1985
+11,Trevor Moore,L,12,84,MED,Playmaker,,United States,31,88,89,87,87,87,81,86,70,80,86,85,87,87,80,87,89,89,85,85,89,87,87,87,87,87,79,,80,85,65,85,2026
+12,Alex Laferriere,R,14,83,MED,,,United States,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+13,Erik Gustafsson,D,,83,MED,Offensive D-man,,Sweden,34,87,86,84,89,87,76,85,55,80,85,84,82,86,85,84,85,83,87,79,84,86,82,90,83,88,80,,82,81,70,85,1983
+14,Scott Laughton,L,24,83,MED,,,Canada,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Brian Dumoulin,D,2,82,LOW,,,United States,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Erik Haula,L,,82,LOW,,,Finland,35,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Anton Forsberg,G,31,81,HIGH,Hybrid,,Sweden,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Cody Ceci,D,5,81,LOW,,,Canada,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Joel Armia,R,40,81,MED,,,Finland,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Joel Edmundson,D,6,81,HIGH,,,Canada,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Alex Turcotte,C,15,80,MED,,,Canada,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Corey Perry,R,,80,HIGH,,,Canada,41,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Scott Perunovich,D,,80,MED,,,United States,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Cole Guttman,C,82,76,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Jacob Moverare,D,43,75,MED,Defensive D-man,,Sweden,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Jan Jenik,C,,74,MED,,,Czechia,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Joe Hicketts,D,27,74,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Samuel Helenius,C,79,74,MED,,,Finland,23,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Lane Pederson,C,,73,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Taylor Ward,R,52,73,LOW,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+31,Kenny Connors,C,34,72,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+32,Kirill Kirsanov,D,78,69,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+1,Carter George,G,40,,,,,Canada,20,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

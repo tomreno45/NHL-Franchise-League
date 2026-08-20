@@ -1,0 +1,37 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Jack Eichel,C,9,94,HIGH,Playmaker,X-Factor,United States,29,93,94,88,94,94,84,88,77,85,84,90,88,93,90,92,94,91,93,87,93,92,93,92,91,91,83,,82,88,75,88,"2,133"
+2,Mitch Marner,R,93,92,EXACT,Playmaker,X-Factor,Canada,29,93,93,89,95,94,81,89,64,82,89,90,87,95,89,89,89,92,84,90,88,88,89,87,90,87,81,,83,90,65,84,"2,084"
+3,Mark Stone,R,61,89,LOW,2 Way Forward,X-Factor,Canada,34,90,88,90,91,90,82,92,63,83,88,89,85,91,90,86,85,85,87,87,85,89,89,90,86,90,82,,83,80,75,90,"2,063"
+4,Noah Hanifin,D,15,89,MED,2 Way D-Man,X-Factor,United States,29,89,89,87,92,89,79,90,55,82,87,89,88,90,90,88,89,89,84,86,90,89,89,88,92,88,84,,82,89,75,88,"2,068"
+5,Rasmus Andersson,D,4,88,MED,2 Way D-Man,X-Factor,Sweden,29,88,88,86,88,88,81,90,55,91,86,85,82,89,85,89,90,88,86,92,89,89,91,88,90,88,84,,84,90,75,88,"2,067"
+6,Shea Theodore,D,27,88,HIGH,2 Way D-Man,X-Factor,Canada,31,92,92,88,94,92,78,88,55,82,86,89,84,93,90,88,91,89,83,86,90,89,86,90,89,90,80,,79,83,70,87,"2,057"
+7,Carter Hart,G,79,87,MED,Hybrid,Post To Post,Canada,,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,19,89,1,1,1,1,113
+8,Ivan Barbashev,C,49,86,MED,2 Way Forward,X-Factor,Russia,30,87,86,86,88,88,79,86,66,81,84,88,85,92,86,86,86,84,87,85,86,89,85,91,87,91,81,,86,84,65,89,"2,034"
+9,Tomas Hertl,C,48,86,MED,Sniper,X-Factor,Czechia,32,89,89,87,88,90,85,86,82,85,85,85,83,86,86,87,85,89,92,87,84,88,86,89,89,88,82,,86,85,65,90,"2,062"
+10,Brayden McNabb,D,3,85,MED,Defensive D-man,X-Factor,Canada,35,82,82,80,82,83,81,91,55,90,87,83,83,83,83,83,82,83,82,85,82,87,85,88,86,87,86,,86,87,80,89,"2,001"
+11,Adin Hill,G,33,84,MED,Hybrid,,Canada,30,20,,,81,,,,,,,28,,,85,52,,88,,85,88,,,,,,34,87,,85,,,599
+12,Reilly Smith,R,19,84,MED,,,Canada,35,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+13,William Karlsson,C,71,84,LOW,2 Way Forward,X-Factor,Sweden,33,86,86,85,86,87,85,88,81,83,87,87,88,87,85,86,88,85,85,85,87,86,85,86,86,87,79,,82,82,65,85,"2,031"
+14,Brett Howden,C,21,81,MED,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Jeremy Lauzon,D,5,81,MED,,,Canada,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Nic Dowd,C,26,81,LOW,,,United States,36,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Victor Olofsson,L,,81,MED,,,Sweden,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Alexander Holtz,R,11,80,MED,,,Sweden,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Braeden Bowman,R,42,80,LOW,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Brandon Saad,L,20,80,LOW,,,United States,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Ben Hutton,D,17,78,MED,,,Canada,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Dylan Coghlan,D,52,78,MED,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Parker Wotherspoon,D,,77,MED,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Ville Heinola,D,,77,MED,2 Way D-Man,,Finland,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Jonas Rondbjerg,R,46,76,MED,,,Denmark,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Raphael Lavoie,C,36,76,MED,,,Canada,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Adam Ginning,D,,75,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Jaycob Megna,D,88,75,LOW,Defensive D-man,,United States,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Jeremy Davies,D,84,75,EXACT,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Lukas Cormier,D,51,75,MED,,,Canada,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+31,Tanner Laczynski,C,28,75,MED,,,Canada,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+32,Trevor Connelly,L,24,74,MED,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+33,Kai Uchacz,C,77,73,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+34,Marc Gatcomb,C,,73,MED,,,United States,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+35,Antti Tuomisto,D,,70,MED,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+36,Carl Lindbom,G,30,--,--,,,Sweden,23,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0

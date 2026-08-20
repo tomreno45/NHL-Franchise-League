@@ -1,0 +1,35 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes,AttributeSource,GloveLow,StickLow,FiveHole,GloveHigh,StickHigh,PokeCheck,ReboundControl,Vision,Breakaway,Angles,Recover,Potential,Confidence
+1,Igor Shesterkin,G,31,93,Exact,Hybrid,X-Factor,Russia,30,,,,88,,,,,,,,,,,,,92,,94,93,,,,,,,,,94,,,1497,Goalie: site OVR + estimated attribute profile,93,93,97,89,91,91,94,99,95,97,97,4.5,EXACT
+2,Adam Fox,D,23,91,Exact,Offensive D-man,X-Factor,United States,28,92,93,91,92,93,77,87,55,82,85,89,83,94,91,89,87,91,91,88,86,89,86,89,92,88,81,,81,88,70,85,2068,Site,,,,,,,,,,,,5,HIGH
+3,J.T. Miller,L,8,89,Med,Power Forward,X-Factor,United States,33,92,91,90,93,92,86,89,84,85,84,87,81,92,89,87,86,86,90,89,86,90,91,92,85,92,86,,88,87,75,92,2109,Site,,,,,,,,,,,,4,EXACT
+4,Braden Schneider,D,4,86,Med,Defensive D-man,,Canada,24,84,84,82,84,85,79,91,55,85,84,85,86,85,83,84,86,84,84,79,87,86,83,87,87,87,86,,90,83,80,90,2011,Site,,,,,,,,,,,,4,HIGH
+5,Mika Zibanejad,C,93,86,,Sniper,X-Factor,Sweden,33,88,88,86,90,88,85,88,80,82,89,87,86,88,86,86,86,86,82,90,86,90,89,90,88,91,84,,82,90,75,88,2074,Site,,,,,,,,,,,,4,EXACT
+6,Pavel Dorofeyev,L,16,86,Med,Sniper,X-Factor,Russia,25,86,86,85,84,87,78,85,63,80,82,85,82,88,85,86,86,87,90,83,84,90,91,88,91,88,78,,81,83,65,84,2008,Site,,,,,,,,,,,,4.5,HIGH
+7,Alexis Lafreniere,L,13,85,Med,Playmaker,X-Factor,Canada,24,88,89,86,88,89,78,83,66,80,81,85,83,87,84,85,89,86,86,79,87,88,86,88,89,87,82,,85,87,70,85,2020,Site,,,,,,,,,,,,4.5,HIGH
+8,Marcus Pettersson,D,,85,Med,Defensive D-man,,Sweden,30,84,84,83,85,85,79,92,55,84,86,83,81,85,84,84,84,83,85,87,83,86,86,88,83,88,82,,84,87,70,87,1999,Site,,,,,,,,,,,,3.5,EXACT
+9,Oliver Bjorkstrand,R,,85,Med,Sniper,,Denmark,31,88,87,87,89,89,80,87,65,78,89,89,95,88,85,86,87,87,84,83,88,88,87,88,87,88,80,,80,90,65,84,2037,Site,,,,,,,,,,,,4,EXACT
+10,Sean Durzi,D,,85,Med,2 Way D-Man,X-Factor,Canada,27,87,87,86,87,87,78,87,55,85,83,85,80,90,86,86,88,87,84,81,88,87,86,89,86,88,80,,82,81,70,85,2008,Site,,,,,,,,,,,,4,MED
+11,Vladislav Gavrikov,D,44,85,Low,Defensive D-man,,Russia,30,82,81,81,82,83,80,92,55,84,89,84,84,84,83,84,85,83,82,84,84,88,88,88,86,88,85,,82,89,80,89,2006,Site,,,,,,,,,,,,3.5,EXACT
+12,Will Cuylle,L,50,85,Med,Power Forward,X-Factor,Canada,24,83,82,82,84,85,78,85,65,83,80,83,81,87,82,85,86,85,86,81,86,88,86,88,88,88,87,,94,83,80,90,2017,Site,,,,,,,,,,,,4.5,HIGH
+13,Jonathan Quick,G,32,83,High,Hybrid,,United States,40,,,,84,,,,,,,,,,,,,85,,86,86,,,,,,,,,86,,,1343,Goalie: site OVR + estimated attribute profile,81,84,84,82,86,76,90,88,85,83,77,3,EXACT
+14,Joonas Korpisalo,G,,82,Low,Hybrid,,Finland,32,,,,84,,,,,,,,,,,,,85,,85,86,,,,,,,,,85,,,1333,Goalie: site OVR + estimated attribute profile,84,86,82,79,81,83,80,81,80,88,84,3,EXACT
+15,Taylor Raddysh,R,14,82,Med,,,Canada,28,85,85,84,85,85,80,84,70,81,83,83,83,85,81,85,86,85,84,84,86,86,85,87,86,87,82,,84,84,72,86,2002,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+16,Joe Veleno,C,,81,Med,,,Canada,26,84,85,84,84,85,80,84,70,81,83,83,83,85,80,84,85,84,84,84,85,86,84,87,85,87,81,,84,83,72,86,1994,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+17,Noah Laba,C,42,80,Med,,,United States,23,84,84,83,83,84,79,83,70,81,83,82,83,84,79,84,85,84,84,84,85,86,84,87,84,87,82,,85,83,73,86,1988,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+18,Tye Kartye,L,24,80,Med,,,Canada,25,84,84,83,83,84,79,83,70,81,83,82,83,84,79,84,85,84,84,84,85,86,84,87,84,87,82,,85,83,73,86,1988,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+19,Gabe Perreault,R,94,79,Med,,,Canada,21,83,83,83,82,83,79,83,69,80,83,81,83,83,78,84,84,83,83,84,85,85,83,87,84,86,82,,85,82,73,86,1975,Interpolated (estimated from OVR),,,,,,,,,,,,4.5,HIGH
+20,Urho Vaakanainen,D,18,79,Med,,,Finland,27,79,79,77,80,80,78,86,56,86,84,79,80,80,78,81,81,80,83,80,82,83,79,87,79,87,83,,87,81,76,87,1935,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+21,Marc Del Gaizo,D,,78,Med,,,,26,78,78,76,79,80,78,85,56,87,84,79,80,79,77,81,81,79,82,80,81,82,78,87,78,87,83,,88,81,76,87,1926,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+22,Matt Rempe,C,73,77,Med,,,Canada,24,82,82,82,81,82,78,82,69,80,83,80,83,81,76,83,83,82,83,83,84,84,82,86,82,86,82,,85,81,74,86,1958,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+23,Adam Sykora,L,38,76,Med,,,Slovakia,21,81,81,81,80,81,78,82,69,80,82,79,83,80,75,83,83,82,82,83,84,84,82,86,82,86,81,,85,81,74,85,1949,Interpolated (estimated from OVR),,,,,,,,,,,,3.5,MED
+24,Dennis Cholowski,D,44,75,Low,,,Canada,28,75,75,73,76,77,78,84,57,88,83,76,78,75,75,79,78,77,81,78,79,80,75,86,75,86,83,,89,79,77,87,1888,Interpolated (estimated from OVR),,,,,,,,,,,,3,LOW
+25,Matthew Robertson,D,29,75,Med,,,Canada,25,75,75,73,76,77,78,84,57,88,83,76,78,75,75,79,78,77,81,78,79,80,75,86,75,86,83,,89,79,77,87,1888,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+26,Vincent Iorio,D,6,75,Med,,,Canada,23,75,75,73,76,77,78,84,57,88,83,76,78,75,75,79,78,77,81,78,79,80,75,86,75,86,83,,89,79,77,87,1888,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+27,Drew Fortescue,D,45,74,Med,,,United States,21,74,75,72,75,76,78,84,57,88,83,76,78,75,75,78,78,76,80,77,78,80,74,86,74,86,83,,89,79,77,87,1879,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+28,Jaroslav Chmelar,R,49,74,Med,,,Czechia,23,80,80,80,78,80,78,81,68,79,82,78,83,78,73,82,82,81,82,83,83,83,80,86,80,85,81,,85,80,75,85,1929,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+29,Anton Blidh,L,25,73,Exact,,,,31,79,79,80,77,79,78,81,68,79,82,77,83,77,72,82,81,81,81,82,83,83,80,86,80,85,81,,85,80,75,85,1921,Interpolated (estimated from OVR),,,,,,,,,,,,3,EXACT
+30,Massimo Rizzo,C,,70,Med,,,,25,77,77,78,75,77,77,79,67,79,82,76,83,75,70,81,80,79,80,82,82,81,78,85,78,84,81,,86,78,76,85,1895,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+31,Cole Beaudoin,C,,69,Med,,,,20,76,76,78,75,76,76,79,67,78,81,76,83,75,70,80,79,79,80,82,81,81,77,85,77,84,81,,86,78,76,84,1886,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+32,William Trudeau,D,,69,Med,,,,23,74,75,72,75,75,78,82,57,89,82,75,76,75,75,76,76,75,77,74,76,78,71,85,72,84,83,,91,76,78,86,1854,Interpolated (estimated from OVR),,,,,,,,,,,,3,MED
+33,Dylan Garand,G,33,72,,,,Canada,24,,,,64,,,,,,,,,,,,,65,,80,65,,,,,,,,,80,,,1142,Goalie: fully estimated (no site OVR or attributes),75,68,71,73,69,70,75,75,70,71,71,3,LOW
+34,Spencer Martin,G,41,75,,,,,31,,,,70,,,,,,,,,,,,,78,,77,75,,,,,,,,,76,,,1202,Goalie: fully estimated (no site OVR or attributes),80,73,77,76,70,73,71,82,76,72,76,3,EXACT

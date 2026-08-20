@@ -1,0 +1,31 @@
+Rank,Player,Position,Number,OVR,POT,PlayerStyle,ZoneAbility,Nationality,Age,PuckSkills,Deking,HandEye,Passing,PuckControl,Defense,DefensiveAwareness,Faceoffs,ShotBlocking,StickChecking,Senses,Discipline,OffensiveAwareness,Poise,Skating,Acceleration,Agility,Balance,Endurance,Speed,Shooting,SlapShotAccuracy,SlapShotPower,WristShotAccuracy,WristShotPower,Physical,Aggressiveness,BodyChecking,Durability,FightingSkill,Strength,TotalAttributes
+1,Brandon Montour,D,62,87,Med,2 Way D-Man,X-Factor,Canada,32,88,89,86,89,87,77,87,55,81,84,87,81,92,89,88,93,87,84,84,93,93,93,93,93,91,83,,83,89,73,86,2062
+2,Vince Dunn,D,29,87,Med,2 Way D-Man,X-Factor,Canada,29,90,91,87,92,90,77,88,55,81,83,88,83,92,89,87,88,87,89,84,87,91,91,92,88,91,81,,81,84,70,87,2050
+3,Jared McCann,L,19,86,Med,2 Way Forward,X-Factor,Canada,30,88,88,86,89,88,81,87,69,83,84,87,86,90,86,86,89,85,83,86,88,90,88,90,90,91,81,,82,87,68,85,2048
+4,Chandler Stephenson,C,9,85,Med,2 Way Forward,X-Factor,Canada,32,89,89,85,91,89,85,87,83,83,87,86,86,89,83,86,85,85,84,89,85,87,87,87,84,88,82,,82,89,70,86,2053
+5,Joey Daccord,G,35,85,High,Hybrid,,United States,29,23,,,90,,,,,,,29,,,87,52,,85,,89,88,,,,,,35,87,,89,,,615
+6,Jordan Eberle,R,7,85,Low,Sniper,Spin-O-Rama,Canada,36,88,90,87,87,87,78,84,65,77,85,84,86,87,80,86,88,89,84,85,85,88,87,88,88,87,79,,80,85,65,84,2010
+7,Matty Beniers,C,10,85,Med,2 Way Forward,X-Factor,United States,23,89,90,87,87,90,85,88,79,87,84,86,88,87,83,86,88,87,85,84,86,88,89,87,87,87,81,,83,88,68,86,2055
+8,Adam Larsson,D,6,84,Med,Defensive D-man,,Sweden,33,84,84,81,86,85,78,89,55,87,82,84,83,85,83,85,85,83,84,87,86,88,89,87,87,87,83,,86,89,70,88,2008
+9,Eeli Tolvanen,R,20,84,Low,Sniper,,Finland,27,88,89,88,85,88,77,83,65,75,85,86,90,88,80,86,85,89,85,85,85,90,87,91,88,92,79,,80,85,65,85,2018
+10,Ryan Lindgren,D,55,84,Med,Defensive D-man,,United States,28,79,80,77,80,80,81,88,55,90,90,77,70,80,80,87,86,86,87,87,87,82,76,87,77,87,84,,88,85,75,88,1966
+11,Ryker Evans,D,41,84,Med,,,Canada,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+12,Frederick Gaudreau,C,89,83,Med,,,Canada,33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+13,Kaapo Kakko,R,84,83,Low,,,Finland,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+14,Philipp Grubauer,G,31,83,Low,Hybrid,,Germany,34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+15,Shane Wright,C,51,82,Med,,,Canada,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+16,Bobby McMann,C,74,81,Low,,,Canada,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+17,Mackie Samoskevich,R,11,80,Med,,,United States,23,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+18,Matt Murray,G,30,80,Med,Hybrid,,Canada,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+19,Cale Fleury,D,8,78,Low,,,Canada,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+20,Joshua Mahura,D,28,78,Med,,,Canada,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+21,Ben Meyers,C,59,77,Med,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Berkly Catton,C,27,77,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+23,Ryan Winterton,C,26,76,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+24,Curtis Douglas,C,,75,Med,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+25,Jacob Melanson,R,63,75,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+26,Jani Nyman,R,38,75,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+27,Logan Morrison,C,96,75,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+28,Oscar Fisker Molgaard,C,78,75,Med,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+29,Nikke Kokko,G,39,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
+30,Victor Ostman,G,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,0
