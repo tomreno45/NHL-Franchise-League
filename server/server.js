@@ -485,6 +485,29 @@ app.post(
   })
 );
 
+// Every human-controlled team's ready/not-ready state for the current
+// phase/round — visible to everyone, not just the acting team, so the
+// whole league can see who's still holding things up.
+app.get(
+  "/api/league/ready",
+  asyncRoute(async (req, res) => {
+    res.json(await store.getReadyStatus());
+  })
+);
+
+// Marks (or unmarks) the requesting team ready for the current checkpoint.
+// Auto-advances the phase once every human team is ready — see
+// store.js's setTeamReady for what happens if the phase's own exit
+// condition (games remaining, draft unfinished, etc.) isn't actually met
+// yet even once everyone's readied up.
+app.post(
+  "/api/league/ready",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    res.json(await store.setTeamReady(req.teamId, Boolean(req.body.ready)));
+  })
+);
+
 // Current free agents plus the requesting team's own bid on each — open
 // during both `free_agency` and `trade_period` phases. Scoped to ?teamId=
 // so a GM only ever sees their own bid, never a competitor's.

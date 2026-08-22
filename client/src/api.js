@@ -49,6 +49,8 @@ export const api = {
   getSeason: () => get("/season"),
   getLeaguePhase: () => get("/league/phase"),
   advancePhase: () => send("POST", "/league/phase/advance", {}),
+  getReadyStatus: () => get("/league/ready"),
+  setReady: (ready) => send("POST", "/league/ready", { ready }),
   getFreeAgencyBoard: (teamId) => get(`/freeagency/board${teamId ? `?teamId=${teamId}` : ""}`),
   submitFreeAgentBid: (payload) => send("POST", "/freeagency/bids", payload),
   getResigningBoard: () => get("/resigning/board"),

@@ -82,8 +82,9 @@ async function main() {
   await pool.query("DELETE FROM notifications");
   await pool.query("DELETE FROM draft_order");
   await pool.query("DELETE FROM season_results");
+  await pool.query("DELETE FROM phase_ready_teams");
   console.log(
-    `[${league}] Cleared free_agent_bids, trade_proposals, cpu_trade_offers, cpu_trade_offer_batches, notifications, draft_order, season_results.`
+    `[${league}] Cleared free_agent_bids, trade_proposals, cpu_trade_offers, cpu_trade_offer_batches, notifications, draft_order, season_results, phase_ready_teams.`
   );
 
   console.log(`\n[${league}] Done — reset to the beginning of season 1 with the new 84-game schedule.`);

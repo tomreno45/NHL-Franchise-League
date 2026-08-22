@@ -85,6 +85,22 @@ ALTER TABLE league_state ADD COLUMN IF NOT EXISTS phase_round INTEGER NOT NULL D
 -- entered — see advanceLeaguePhase's phase-transition branch in store.js.
 ALTER TABLE league_state ADD COLUMN IF NOT EXISTS current_pick_index INTEGER NOT NULL DEFAULT 0;
 
+-- A human-controlled team marking itself done with the current phase/round
+-- checkpoint — see store.js's setTeamReady/getReadyStatus. A row's mere
+-- presence means "ready"; there's no boolean column since un-readying just
+-- deletes the row. Naturally scoped to one specific checkpoint by the
+-- primary key, so advancing to a new phase/round starts everyone unready
+-- again without any extra reset step — the old checkpoint's rows just
+-- become orphaned (and get cleaned up explicitly once everyone's advanced
+-- past them, see setTeamReady) rather than needing to carry forward.
+CREATE TABLE IF NOT EXISTS phase_ready_teams (
+  season_number INTEGER NOT NULL,
+  phase TEXT NOT NULL,
+  phase_round INTEGER NOT NULL,
+  team_id INTEGER NOT NULL REFERENCES teams(id),
+  PRIMARY KEY (season_number, phase, phase_round, team_id)
+);
+
 CREATE TABLE IF NOT EXISTS progression_runs (
   id SERIAL PRIMARY KEY,
   generated_at TIMESTAMPTZ NOT NULL DEFAULT now(),

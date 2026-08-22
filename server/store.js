@@ -1214,6 +1214,84 @@ async function advanceLeaguePhase() {
   return getLeaguePhase();
 }
 
+// Every human-controlled team's ready/not-ready state for the CURRENT
+// phase/round checkpoint — CPU teams don't get a say, there's no GM to ask.
+async function getReadyStatus() {
+  const phase = await getLeaguePhase();
+  const teams = await getTeams();
+  const humanTeams = teams.filter((t) => t.isHumanControlled);
+  const { rows } = await pool.query(
+    "SELECT team_id FROM phase_ready_teams WHERE season_number = $1 AND phase = $2 AND phase_round = $3",
+    [phase.seasonNumber, phase.phase, phase.phaseRound]
+  );
+  const readyIds = new Set(rows.map((r) => r.team_id));
+  const teamStatuses = humanTeams.map((t) => ({
+    teamId: t.id,
+    city: t.city,
+    name: t.name,
+    ready: readyIds.has(t.id),
+  }));
+  return {
+    seasonNumber: phase.seasonNumber,
+    phase: phase.phase,
+    phaseRound: phase.phaseRound,
+    teams: teamStatuses,
+    readyCount: teamStatuses.filter((t) => t.ready).length,
+    totalCount: teamStatuses.length,
+    allReady: teamStatuses.length > 0 && teamStatuses.every((t) => t.ready),
+  };
+}
+
+// Marks (or unmarks) one team ready for the current checkpoint, then — if
+// that was the last team needed — attempts the exact same advance the
+// commissioner's manual button runs. If the phase's own exit condition
+// isn't actually met yet (games still remaining, draft unfinished, etc.),
+// the attempt just fails quietly and the ready flags stay put; the next
+// person to toggle ready re-triggers this check, and the commissioner can
+// always still force it manually regardless of readiness.
+async function setTeamReady(teamId, ready) {
+  const teams = await getTeams();
+  const team = teams.find((t) => t.id === teamId);
+  if (!team) throw notFound("Team not found");
+  if (!team.isHumanControlled) throw badRequest("Only human-controlled teams can mark themselves ready");
+
+  const before = await getLeaguePhase();
+  if (ready) {
+    await pool.query(
+      `INSERT INTO phase_ready_teams (season_number, phase, phase_round, team_id)
+       VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
+      [before.seasonNumber, before.phase, before.phaseRound, teamId]
+    );
+  } else {
+    await pool.query(
+      "DELETE FROM phase_ready_teams WHERE season_number = $1 AND phase = $2 AND phase_round = $3 AND team_id = $4",
+      [before.seasonNumber, before.phase, before.phaseRound, teamId]
+    );
+  }
+
+  const status = await getReadyStatus();
+  if (!status.allReady) {
+    return { advanced: false, status };
+  }
+
+  try {
+    await advanceLeaguePhase();
+  } catch (err) {
+    return { advanced: false, status, blockedReason: err.message };
+  }
+
+  // The checkpoint everyone just cleared is now in the past — sweep it so
+  // the new phase/round doesn't start out with leftover rows tied to a
+  // different (season, phase, round) tuple than the one teams will actually
+  // be readying up for next.
+  await pool.query(
+    "DELETE FROM phase_ready_teams WHERE season_number = $1 AND phase = $2 AND phase_round = $3",
+    [before.seasonNumber, before.phase, before.phaseRound]
+  );
+
+  return { advanced: true, status: await getReadyStatus() };
+}
+
 // Wipes the current schedule and replaces it with a freshly generated round
 // robin. Prior seasons' games aren't archived — only the live schedule
 // reflects the new one. Deliberately does NOT touch season_number or draft
@@ -3894,6 +3972,8 @@ module.exports = {
   getSeasonResults,
   getLeaguePhase,
   advanceLeaguePhase,
+  getReadyStatus,
+  setTeamReady,
   getFreeAgents,
   getFreeAgencyBoard,
   submitFreeAgentBid,
