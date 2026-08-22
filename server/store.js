@@ -3269,6 +3269,17 @@ async function proposeTradeOffer({ teamAId, teamBId, teamAAssets, teamBAssets })
   return { offerId: rows[0].id, evaluation };
 }
 
+// Plain-English "Player A, Player B, R2 pick" summary of a set of assets —
+// shared by every trade notification message so the league transactions
+// feed always says who actually moved, not just that a trade happened.
+function describeAssetNames(playerIds, pickIds, playersById, picksById) {
+  const parts = [
+    ...playerIds.map((id) => playersById.get(id)?.name).filter(Boolean),
+    ...pickIds.map((id) => (picksById.get(id) ? `R${picksById.get(id).round} pick` : null)).filter(Boolean),
+  ];
+  return parts.length > 0 ? parts.join(", ") : "nothing";
+}
+
 function describeTradeOfferAssets(playerIds, pickIds, playersById, picksById) {
   return {
     players: playerIds
@@ -3384,7 +3395,10 @@ async function respondToHumanTradeOffer({ teamId, offerId, accept }) {
     await client.query("UPDATE human_trade_offers SET status = 'accepted' WHERE id = $1", [offerId]);
   });
 
-  await createNotification(offer.proposing_team_id, `${targetAbbr} accepted your trade offer.`);
+  await createNotification(
+    offer.proposing_team_id,
+    `${targetAbbr} accepted your trade offer: sent ${describeAssetNames(offer.offered_player_ids, offer.offered_pick_ids, playersById, picksById)}, received ${describeAssetNames(offer.requested_player_ids, offer.requested_pick_ids, playersById, picksById)}.`
+  );
   return { status: "accepted" };
 }
 
@@ -3575,13 +3589,7 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
   ]);
   const playersById = new Map(players.map((p) => [p.id, p]));
   const picksById = new Map(picks.map((p) => [p.id, p]));
-  const describeIds = (playerIds, pickIds) => {
-    const parts = [
-      ...playerIds.map((id) => playersById.get(id)?.name).filter(Boolean),
-      ...pickIds.map((id) => (picksById.get(id) ? `R${picksById.get(id).round} pick` : null)).filter(Boolean),
-    ];
-    return parts.length > 0 ? parts.join(", ") : "nothing";
-  };
+  const describeIds = (playerIds, pickIds) => describeAssetNames(playerIds, pickIds, playersById, picksById);
 
   const spentPlayerIds = new Set();
   const spentPickIds = new Set();
@@ -3920,7 +3928,10 @@ async function respondToCpuTradeOffer({ teamId, offerId, accept }) {
     await client.query("UPDATE cpu_trade_offers SET status = 'accepted' WHERE id = $1", [offerId]);
   });
 
-  await createNotification(teamId, `Accepted ${cpuAbbr}'s trade offer.`);
+  await createNotification(
+    teamId,
+    `Accepted ${cpuAbbr}'s trade offer: sent ${describeAssetNames(offer.requested_player_ids, offer.requested_pick_ids, playersById, picksById)}, received ${describeAssetNames(offer.offered_player_ids, offer.offered_pick_ids, playersById, picksById)}.`
+  );
   return { status: "accepted" };
 }
 
@@ -4045,13 +4056,7 @@ async function generateCpuVsCpuTrade(seasonNumber) {
     ]);
   });
 
-  const describe = (playerIds, pickIds) => {
-    const parts = [
-      ...playerIds.map((id) => playersById.get(id)?.name).filter(Boolean),
-      ...pickIds.map((id) => (picksById.get(id) ? `R${picksById.get(id).round} pick` : null)).filter(Boolean),
-    ];
-    return parts.length > 0 ? parts.join(", ") : "nothing";
-  };
+  const describe = (playerIds, pickIds) => describeAssetNames(playerIds, pickIds, playersById, picksById);
 
   await createNotification(
     proposer.id,
