@@ -771,20 +771,58 @@ app.post(
   })
 );
 
-// Actually moves the traded players/picks between teams. Re-validates
-// ownership itself rather than trusting a prior /evaluate call.
+// Sends a direct trade offer to another human-controlled team — does NOT
+// move anything yet. Re-validates ownership itself rather than trusting a
+// prior /evaluate call. The target team's own GM has to accept it (see
+// /api/trades/human-offers/:id/respond) before assets actually change hands.
 app.post(
-  "/api/trades/execute",
+  "/api/trades/propose",
   requireTeam,
   asyncRoute(async (req, res) => {
     const { teamBId, teamAAssets, teamBAssets } = req.body;
-    const result = await store.executeTradeOffer({
+    const result = await store.proposeTradeOffer({
       teamAId: req.teamId,
       teamBId: Number(teamBId),
       teamAAssets,
       teamBAssets,
     });
     res.json(result);
+  })
+);
+
+// This team's own human-vs-human trade offers, both directions — incoming
+// ones awaiting a response, and outgoing ones still awaiting someone else's.
+app.get(
+  "/api/trades/human-offers",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    res.json(await store.getHumanTradeOffers(req.teamId));
+  })
+);
+
+// The target team's explicit accept/decline of an incoming offer — the only
+// place these assets actually move.
+app.post(
+  "/api/trades/human-offers/:id/respond",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    const { accept } = req.body;
+    res.json(
+      await store.respondToHumanTradeOffer({
+        teamId: req.teamId,
+        offerId: Number(req.params.id),
+        accept: Boolean(accept),
+      })
+    );
+  })
+);
+
+// Lets the proposing team cancel its own still-pending offer.
+app.post(
+  "/api/trades/human-offers/:id/withdraw",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    res.json(await store.withdrawHumanTradeOffer({ teamId: req.teamId, offerId: Number(req.params.id) }));
   })
 );
 

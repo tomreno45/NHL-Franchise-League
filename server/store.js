@@ -3221,42 +3221,183 @@ async function evaluateTradeOffer({ teamAId, teamBId, teamAAssets, teamBAssets }
   };
 }
 
-async function executeTradeOffer({ teamAId, teamBId, teamAAssets, teamBAssets }) {
+// --- Human vs human trade offers ---
+//
+// A trade between two human-controlled teams used to execute the instant
+// either side clicked the button — no say from the other GM at all. Now it
+// works the same way a CPU's offer to a human already did: the proposing
+// team's assets and ask go into a pending offer, and nothing actually moves
+// until the target team's own GM explicitly accepts it (or it sits
+// declined/withdrawn and never happens).
+
+async function proposeTradeOffer({ teamAId, teamBId, teamAAssets, teamBAssets }) {
   // Re-resolves and re-validates against current ownership rather than
   // trusting a client-held evaluation — assets could have been traded away
-  // by someone else in between evaluating and executing.
+  // by someone else in between evaluating and proposing.
   const evaluation = await evaluateTradeOffer({ teamAId, teamBId, teamAAssets, teamBAssets });
+
+  const teamsById = await getTeamsById();
+  if (!teamsById.get(teamBId).isHumanControlled) {
+    throw badRequest("The other team isn't human-controlled — submit a trade proposal instead.");
+  }
   if (evaluation.teamA.capImpact.overCap) {
     throw badRequest(`This trade would put ${evaluation.teamA.team.city} ${evaluation.teamA.team.name} over the salary cap.`);
   }
   if (evaluation.teamB.capImpact.overCap) {
     throw badRequest(`This trade would put ${evaluation.teamB.team.city} ${evaluation.teamB.team.name} over the salary cap.`);
   }
-  const teamsById = new Map((await getTeams()).map((t) => [t.id, t]));
+
+  const { rows } = await pool.query(
+    `INSERT INTO human_trade_offers
+       (proposing_team_id, target_team_id, offered_player_ids, offered_pick_ids, requested_player_ids, requested_pick_ids)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+    [
+      teamAId,
+      teamBId,
+      evaluation.teamA.players.map((p) => p.id),
+      evaluation.teamA.picks.map((p) => p.id),
+      evaluation.teamB.players.map((p) => p.id),
+      evaluation.teamB.picks.map((p) => p.id),
+    ]
+  );
+
+  await createNotification(
+    teamBId,
+    `${evaluation.teamA.team.abbr} sent you a trade offer.`
+  );
+
+  return { offerId: rows[0].id, evaluation };
+}
+
+function describeTradeOfferAssets(playerIds, pickIds, playersById, picksById) {
+  return {
+    players: playerIds
+      .map((id) => playersById.get(id))
+      .filter(Boolean)
+      .map((p) => ({ id: p.id, name: p.name, position: p.position, tradeValue: p.tradeValue })),
+    picks: pickIds
+      .map((id) => picksById.get(id))
+      .filter(Boolean)
+      .map((p) => ({ id: p.id, seasonNumber: p.seasonNumber, round: p.round, overallPickNumber: p.overallPickNumber, tradeValue: p.tradeValue })),
+  };
+}
+
+// This team's own trade offers in both directions — incoming ones it needs
+// to respond to, and outgoing ones it's still waiting on someone else for.
+async function getHumanTradeOffers(teamId) {
+  const [teamsById, players, picks] = await Promise.all([getTeamsById(), getPlayers(), getDraftPicks()]);
+  const playersById = new Map(players.map((p) => [p.id, p]));
+  const picksById = new Map(picks.map((p) => [p.id, p]));
+
+  const { rows } = await pool.query(
+    "SELECT * FROM human_trade_offers WHERE proposing_team_id = $1 OR target_team_id = $1 ORDER BY id DESC",
+    [teamId]
+  );
+
+  const mapped = rows.map((r) => ({
+    id: r.id,
+    proposingTeam: teamsById.get(r.proposing_team_id),
+    targetTeam: teamsById.get(r.target_team_id),
+    offered: describeTradeOfferAssets(r.offered_player_ids, r.offered_pick_ids, playersById, picksById),
+    requested: describeTradeOfferAssets(r.requested_player_ids, r.requested_pick_ids, playersById, picksById),
+    status: r.status,
+  }));
+
+  return {
+    incoming: mapped.filter((o) => o.targetTeam.id === teamId),
+    outgoing: mapped.filter((o) => o.proposingTeam.id === teamId),
+  };
+}
+
+// The target team's explicit accept/decline — the only place a human trade
+// offer's assets actually move. Re-validates ownership and cap room on BOTH
+// sides at accept time, since either roster could have changed since the
+// offer was made.
+async function respondToHumanTradeOffer({ teamId, offerId, accept }) {
+  const { rows } = await pool.query("SELECT * FROM human_trade_offers WHERE id = $1", [offerId]);
+  if (rows.length === 0) throw notFound(`Offer ${offerId} not found`);
+  const offer = rows[0];
+  if (offer.target_team_id !== teamId) throw badRequest("This offer isn't addressed to your team");
+  if (offer.status !== "pending") throw badRequest("This offer has already been resolved");
+
+  const teamsById = await getTeamsById();
+  const targetAbbr = teamsById.get(teamId)?.abbr ?? "The other team";
+
+  if (!accept) {
+    await pool.query("UPDATE human_trade_offers SET status = 'declined' WHERE id = $1", [offerId]);
+    await createNotification(offer.proposing_team_id, `${targetAbbr} declined your trade offer.`);
+    return { status: "declined" };
+  }
+
+  const [players, picks] = await Promise.all([getPlayers(), getDraftPicks()]);
+  const playersById = new Map(players.map((p) => [p.id, p]));
+  const picksById = new Map(picks.map((p) => [p.id, p]));
+
+  const offeredPlayers = offer.offered_player_ids.map((id) => playersById.get(id));
+  const requestedPlayers = offer.requested_player_ids.map((id) => playersById.get(id));
+  const ownershipOk =
+    offeredPlayers.every((p) => p && p.teamId === offer.proposing_team_id) &&
+    requestedPlayers.every((p) => p && p.teamId === teamId) &&
+    offer.offered_pick_ids.every((id) => picksById.get(id)?.currentTeam.id === offer.proposing_team_id) &&
+    offer.requested_pick_ids.every((id) => picksById.get(id)?.currentTeam.id === teamId);
+
+  if (!ownershipOk) {
+    await pool.query("UPDATE human_trade_offers SET status = 'expired' WHERE id = $1", [offerId]);
+    throw badRequest("This offer is no longer valid — one of those assets has already moved.");
+  }
+
+  const [proposerCap, targetCap, season] = await Promise.all([
+    getTeamCapHit(offer.proposing_team_id),
+    getTeamCapHit(teamId),
+    getSeasonInfo(),
+  ]);
+  const ceiling = getCapCeiling(season.seasonNumber);
+  const projectedProposerCap = proposerCap - sumCapHit(offeredPlayers) + sumCapHit(requestedPlayers);
+  const projectedTargetCap = targetCap - sumCapHit(requestedPlayers) + sumCapHit(offeredPlayers);
+  if (projectedProposerCap > ceiling) {
+    await pool.query("UPDATE human_trade_offers SET status = 'expired' WHERE id = $1", [offerId]);
+    throw badRequest("The proposing team is no longer under the salary cap for this trade — offer can no longer be accepted.");
+  }
+  if (projectedTargetCap > ceiling) {
+    throw badRequest("Accepting this trade would put your team over the salary cap.");
+  }
 
   await withTransaction(async (client) => {
-    const moveAssets = async (fromEvaluationSide, toTeamId) => {
-      const destinationIsHuman = teamsById.get(toTeamId).isHumanControlled;
-      for (const p of fromEvaluationSide.players) {
-        if (destinationIsHuman) {
-          await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-            toTeamId,
-            p.id,
-          ]);
-        } else {
-          await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [toTeamId, p.id]);
-        }
-      }
-      for (const pick of fromEvaluationSide.picks) {
-        await client.query("UPDATE draft_picks SET current_team_id = $1 WHERE id = $2", [toTeamId, pick.id]);
-      }
-    };
-
-    await moveAssets(evaluation.teamA, teamBId);
-    await moveAssets(evaluation.teamB, teamAId);
+    for (const p of offeredPlayers) {
+      await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
+        teamId,
+        p.id,
+      ]);
+    }
+    for (const pickId of offer.offered_pick_ids) {
+      await client.query("UPDATE draft_picks SET current_team_id = $1 WHERE id = $2", [teamId, pickId]);
+    }
+    for (const p of requestedPlayers) {
+      await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
+        offer.proposing_team_id,
+        p.id,
+      ]);
+    }
+    for (const pickId of offer.requested_pick_ids) {
+      await client.query("UPDATE draft_picks SET current_team_id = $1 WHERE id = $2", [offer.proposing_team_id, pickId]);
+    }
+    await client.query("UPDATE human_trade_offers SET status = 'accepted' WHERE id = $1", [offerId]);
   });
 
-  return evaluation;
+  await createNotification(offer.proposing_team_id, `${targetAbbr} accepted your trade offer.`);
+  return { status: "accepted" };
+}
+
+// Lets the proposing team pull back its own pending offer before the other
+// GM responds — e.g. they changed their mind, or the ask is stale.
+async function withdrawHumanTradeOffer({ teamId, offerId }) {
+  const { rows } = await pool.query("SELECT * FROM human_trade_offers WHERE id = $1", [offerId]);
+  if (rows.length === 0) throw notFound(`Offer ${offerId} not found`);
+  const offer = rows[0];
+  if (offer.proposing_team_id !== teamId) throw badRequest("This isn't your offer to withdraw");
+  if (offer.status !== "pending") throw badRequest("This offer has already been resolved");
+  await pool.query("UPDATE human_trade_offers SET status = 'withdrawn' WHERE id = $1", [offerId]);
+  return { status: "withdrawn" };
 }
 
 // --- CPU-targeted trade proposals (trade_period / post_playoff_trade) ---
@@ -3999,7 +4140,10 @@ module.exports = {
   pickBestProspectForTeam, // exported for standalone analysis/verification scripts (see server/scripts/) — pure, no DB calls
   makeDraftPick,
   evaluateTradeOffer,
-  executeTradeOffer,
+  proposeTradeOffer,
+  getHumanTradeOffers,
+  respondToHumanTradeOffer,
+  withdrawHumanTradeOffer,
   submitTradeProposal,
   getTradeProposals,
   getPendingMoves,

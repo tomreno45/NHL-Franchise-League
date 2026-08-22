@@ -83,5 +83,8 @@ export const api = {
   advanceDraft: () => send("POST", "/draft/advance", {}),
   makeDraftPick: (payload) => send("POST", "/draft/pick", payload),
   evaluateTrade: (payload) => send("POST", "/trades/evaluate", payload),
-  executeTrade: (payload) => send("POST", "/trades/execute", payload),
+  proposeTrade: (payload) => send("POST", "/trades/propose", payload),
+  getHumanTradeOffers: () => get("/trades/human-offers"),
+  respondToHumanTradeOffer: (offerId, accept) => send("POST", `/trades/human-offers/${offerId}/respond`, { accept }),
+  withdrawHumanTradeOffer: (offerId) => send("POST", `/trades/human-offers/${offerId}/withdraw`, {}),
 };

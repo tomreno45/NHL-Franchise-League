@@ -226,6 +226,24 @@ CREATE TABLE IF NOT EXISTS cpu_trade_offer_batches (
   PRIMARY KEY (season_number, round, phase)
 );
 
+-- A human GM's direct trade offer to another human-controlled team —
+-- unlike a CPU trade, both sides are real people, so this never
+-- auto-resolves; the target team must explicitly accept or decline (see
+-- store.js's proposeTradeOffer/respondToHumanTradeOffer). No season/round/
+-- phase scoping like the CPU tables above — the instant human-vs-human
+-- trade flow this replaces was never phase-gated either, so this isn't.
+CREATE TABLE IF NOT EXISTS human_trade_offers (
+  id SERIAL PRIMARY KEY,
+  proposing_team_id INTEGER NOT NULL REFERENCES teams(id),
+  target_team_id INTEGER NOT NULL REFERENCES teams(id),
+  offered_player_ids INTEGER[] NOT NULL DEFAULT '{}',
+  offered_pick_ids INTEGER[] NOT NULL DEFAULT '{}',
+  requested_player_ids INTEGER[] NOT NULL DEFAULT '{}',
+  requested_pick_ids INTEGER[] NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- One row per season's playoff outcome. A table rather than a single
 -- mutable field so history isn't overwritten each season, and so it's
 -- extensible once real bracket logic exists (NHL 27 details are still

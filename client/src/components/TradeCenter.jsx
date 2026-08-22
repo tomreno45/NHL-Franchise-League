@@ -24,7 +24,11 @@ const INTEREST_STYLES = {
 const STATUS_STYLES = {
   pending: "bg-slate-500/15 text-slate-400",
   executed: "bg-emerald-500/15 text-emerald-400",
+  accepted: "bg-emerald-500/15 text-emerald-400",
   rejected: "bg-red-500/15 text-red-400",
+  declined: "bg-red-500/15 text-red-400",
+  expired: "bg-red-500/15 text-red-400",
+  withdrawn: "bg-slate-500/15 text-slate-400",
 };
 
 const NEED_STYLES = {
@@ -242,7 +246,10 @@ export default function TradeCenter() {
   const [evaluating, setEvaluating] = useState(false);
   const [proposals, setProposals] = useState([]);
   const [cpuOffers, setCpuOffers] = useState([]);
+  const [humanOffers, setHumanOffers] = useState({ incoming: [], outgoing: [] });
   const [respondingId, setRespondingId] = useState(null);
+  const [respondingHumanId, setRespondingHumanId] = useState(null);
+  const [withdrawingId, setWithdrawingId] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [resultMessage, setResultMessage] = useState(null);
@@ -257,8 +264,14 @@ export default function TradeCenter() {
     api.getCpuTradeOffers().then(setCpuOffers).catch((e) => setError(e.message));
   };
 
+  const loadHumanOffers = () => {
+    if (myTeamId == null) return;
+    api.getHumanTradeOffers().then(setHumanOffers).catch((e) => setError(e.message));
+  };
+
   useEffect(loadProposals, [myTeamId]);
   useEffect(loadCpuOffers, [myTeamId]);
+  useEffect(loadHumanOffers, [myTeamId]);
 
   useEffect(() => {
     api
@@ -352,7 +365,7 @@ export default function TradeCenter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myTeamId, teamBId, selectedA, selectedB]);
 
-  const handleExecute = async () => {
+  const handleProposeToHuman = async () => {
     if (!evaluation) return;
     setBusy(true);
     setError(null);
@@ -363,25 +376,54 @@ export default function TradeCenter() {
         teamAAssets: { playerIds: [...selectedA.playerIds], pickIds: [...selectedA.pickIds] },
         teamBAssets: { playerIds: [...selectedB.playerIds], pickIds: [...selectedB.pickIds] },
       };
-      const result = await api.executeTrade(payload);
-      setEvaluation(result);
-      setResultMessage("Trade executed — assets have moved teams.");
+      await api.proposeTrade(payload);
+      setResultMessage("Offer sent — nothing moves until they accept it.");
       setSelectedA(emptySelection());
       setSelectedB(emptySelection());
-      const [rosterA, picksA, rosterB, picksB] = await Promise.all([
-        api.getRoster(myTeamId),
-        api.getDraftPicks(myTeamId),
-        api.getRoster(teamBId),
-        api.getDraftPicks(teamBId),
-      ]);
-      setTeamAPlayers(rosterA.roster);
-      setTeamAPicks(picksA);
-      setTeamBPlayers(rosterB.roster);
-      setTeamBPicks(picksB);
+      loadHumanOffers();
     } catch (e) {
       setError(e.message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const refreshBothRosters = async () => {
+    const [rosterA, picksA] = await Promise.all([api.getRoster(myTeamId), api.getDraftPicks(myTeamId)]);
+    setTeamAPlayers(rosterA.roster);
+    setTeamAPicks(picksA);
+    if (teamBId != null) {
+      const [rosterB, picksB] = await Promise.all([api.getRoster(teamBId), api.getDraftPicks(teamBId)]);
+      setTeamBPlayers(rosterB.roster);
+      setTeamBPicks(picksB);
+    }
+  };
+
+  const handleRespondToHumanOffer = async (offerId, accept) => {
+    setRespondingHumanId(offerId);
+    setError(null);
+    try {
+      await api.respondToHumanTradeOffer(offerId, accept);
+      setResultMessage(accept ? "Trade accepted — assets have moved teams." : "Offer declined.");
+      loadHumanOffers();
+      if (accept) await refreshBothRosters();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setRespondingHumanId(null);
+    }
+  };
+
+  const handleWithdrawHumanOffer = async (offerId) => {
+    setWithdrawingId(offerId);
+    setError(null);
+    try {
+      await api.withdrawHumanTradeOffer(offerId);
+      loadHumanOffers();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setWithdrawingId(null);
     }
   };
 
@@ -444,7 +486,7 @@ export default function TradeCenter() {
   return (
     <div>
       <div className="mb-6 rounded-lg bg-slate-900 p-4">
-        <h3 className="mb-1 text-sm font-semibold text-slate-300">Incoming Trade Offers</h3>
+        <h3 className="mb-1 text-sm font-semibold text-slate-300">Incoming CPU Offers</h3>
         <p className="mb-3 text-xs text-slate-500">CPU teams proposing trades to you this round — accept or decline each one.</p>
         {pendingCpuOffers.length === 0 ? (
           <p className="text-sm text-slate-500">No incoming trade offers right now.</p>
@@ -487,6 +529,105 @@ export default function TradeCenter() {
                     Decline
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6 rounded-lg bg-slate-900 p-4">
+        <h3 className="mb-1 text-sm font-semibold text-slate-300">Offers With Other GMs</h3>
+        <p className="mb-3 text-xs text-slate-500">
+          Direct offers you've sent or received don't move anything until the other GM accepts.
+        </p>
+
+        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Awaiting Your Response</h4>
+        {humanOffers.incoming.length === 0 ? (
+          <p className="mb-4 text-sm text-slate-500">No incoming offers right now.</p>
+        ) : (
+          <div className="mb-4 flex flex-col gap-3">
+            {humanOffers.incoming.map((offer) => (
+              <div key={offer.id} className="rounded-lg border border-slate-800 bg-slate-950 p-3">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-medium text-slate-100">
+                    {offer.proposingTeam.city} {offer.proposingTeam.name}
+                  </span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[offer.status] || "bg-slate-500/15 text-slate-400"}`}>
+                    {offer.status}
+                  </span>
+                </div>
+                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                  <div>
+                    <span className="text-slate-500">They send:</span>{" "}
+                    <span className="text-slate-100">{describeProposalAssets(offer.offered.players, offer.offered.picks)}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">They want:</span>{" "}
+                    <span className="text-slate-100">{describeProposalAssets(offer.requested.players, offer.requested.picks)}</span>
+                  </div>
+                </div>
+                {offer.status === "pending" && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleRespondToHumanOffer(offer.id, true)}
+                      disabled={respondingHumanId === offer.id}
+                      className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                    >
+                      {respondingHumanId === offer.id ? "Working…" : "Accept"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRespondToHumanOffer(offer.id, false)}
+                      disabled={respondingHumanId === offer.id}
+                      className="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-600 disabled:opacity-50"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Sent By You</h4>
+        {humanOffers.outgoing.length === 0 ? (
+          <p className="text-sm text-slate-500">You haven't sent any offers yet.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {humanOffers.outgoing.map((offer) => (
+              <div key={offer.id} className="rounded-lg border border-slate-800 bg-slate-950 p-3">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-medium text-slate-100">
+                    {offer.targetTeam.city} {offer.targetTeam.name}
+                  </span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[offer.status] || "bg-slate-500/15 text-slate-400"}`}>
+                    {offer.status}
+                  </span>
+                </div>
+                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                  <div>
+                    <span className="text-slate-500">You send:</span>{" "}
+                    <span className="text-slate-100">{describeProposalAssets(offer.offered.players, offer.offered.picks)}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">You want:</span>{" "}
+                    <span className="text-slate-100">{describeProposalAssets(offer.requested.players, offer.requested.picks)}</span>
+                  </div>
+                </div>
+                {offer.status === "pending" && (
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={() => handleWithdrawHumanOffer(offer.id)}
+                      disabled={withdrawingId === offer.id}
+                      className="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-600 disabled:opacity-50"
+                    >
+                      {withdrawingId === offer.id ? "Withdrawing…" : "Withdraw"}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -576,7 +717,7 @@ export default function TradeCenter() {
               </div>
             )}
 
-            {isCpuTarget && (
+            {isCpuTarget ? (
               <p className="mt-3 text-xs text-slate-500">
                 {proposalPhaseOpen
                   ? "This is a proposal, not an instant trade — it resolves when the current round ends, and other GMs may be offering for the same assets."
@@ -584,16 +725,20 @@ export default function TradeCenter() {
                       PHASE_LABELS[phase?.phase] || phase?.phase
                     }).`}
               </p>
+            ) : (
+              <p className="mt-3 text-xs text-slate-500">
+                This sends a direct offer — nothing moves until {targetTeam ? `${targetTeam.city} ${targetTeam.name}` : "they"} accept it.
+              </p>
             )}
 
             <div className="mt-4 flex items-center gap-3">
               <button
                 type="button"
-                onClick={isCpuTarget ? handleSubmitProposal : handleExecute}
+                onClick={isCpuTarget ? handleSubmitProposal : handleProposeToHuman}
                 disabled={actionDisabled}
                 className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
               >
-                {busy ? "Working…" : isCpuTarget ? "Submit Proposal" : "Execute Trade"}
+                {busy ? "Working…" : isCpuTarget ? "Submit Proposal" : "Send Trade Offer"}
               </button>
               {error && <span className="text-sm text-red-400">{error}</span>}
               {resultMessage && <span className="text-sm text-emerald-400">{resultMessage}</span>}
