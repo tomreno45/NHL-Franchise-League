@@ -30,10 +30,13 @@ import LeagueTransactions from "./components/LeagueTransactions";
 
 // Phases each tab requires to be open. Omitted from this map = always
 // available (read-only views, or tabs like Commissioner/Trade Center that
-// are already phase-conditional internally).
-const TAB_PHASES = {
-  progression: ["progression"],
-};
+// are already phase-conditional internally). Progression used to be locked
+// to the `progression` phase, but its two roster-sync spreadsheet downloads
+// need to work all season (trades and signings flag players needs-update
+// year-round, not just during the Progression phase), so the tab is always
+// open now — the "Run Offseason Progression" button inside it already warns
+// against running it off-cycle on its own.
+const TAB_PHASES = {};
 
 const GROUPS = [
   {

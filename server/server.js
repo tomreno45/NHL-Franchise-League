@@ -3,9 +3,11 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const pgSessionStore = require("connect-pg-simple")(session);
+const ExcelJS = require("exceljs");
 const store = require("./store");
 const { initDatabase } = require("./seed");
 const { sessionPool, runWithLeague, LEAGUE_SLUGS, LEAGUES } = require("./db");
+const { SKATER_ATTRS, GOALIE_ATTRS } = require("./data");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -613,6 +615,83 @@ app.get(
       return res.status(404).json({ error: "Progression has not been run yet" });
     }
     res.json(result);
+  })
+);
+
+// "camelCase" -> "Camel Case", for turning attribute keys into readable
+// column headers without hand-maintaining a separate label map.
+function attrColumnLabel(attr) {
+  return attr.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
+}
+
+// Backs both /api/progression/export/* routes below — same workbook shape
+// (a Skaters sheet and a Goalies sheet, since the two positions don't share
+// an attribute set) for either the "needs update" or "not created" rows.
+async function buildRosterSyncWorkbook(status) {
+  const rows = await store.getRosterSyncExport(status);
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Hockey Franchise League";
+  workbook.created = new Date();
+
+  const baseColumns = [
+    { header: "Team", key: "team", width: 24 },
+    { header: "Name", key: "name", width: 22 },
+    { header: "Pos", key: "position", width: 6 },
+    { header: "Jersey #", key: "jersey", width: 10 },
+    { header: "Age", key: "age", width: 6 },
+    { header: "Overall", key: "overall", width: 8 },
+  ];
+
+  const addSheet = (sheetName, positionFilter, attrs) => {
+    const sheet = workbook.addWorksheet(sheetName);
+    sheet.columns = [...baseColumns, ...attrs.map((attr) => ({ header: attrColumnLabel(attr), key: attr, width: 10 }))];
+    sheet.getRow(1).font = { bold: true };
+    sheet.autoFilter = { from: "A1", to: { row: 1, column: sheet.columns.length } };
+    rows
+      .filter((p) => positionFilter(p.position))
+      .forEach((p) => {
+        sheet.addRow({
+          team: `${p.team.city} ${p.team.name}`,
+          name: p.name,
+          position: p.position,
+          jersey: p.jerseyNumber,
+          age: p.age,
+          overall: p.overall,
+          ...p.attributes,
+        });
+      });
+    return sheet;
+  };
+
+  addSheet("Skaters", (pos) => pos !== "G", SKATER_ATTRS);
+  addSheet("Goalies", (pos) => pos === "G", GOALIE_ATTRS);
+
+  return workbook;
+}
+
+async function sendRosterSyncWorkbook(res, status, filename) {
+  const workbook = await buildRosterSyncWorkbook(status);
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  await workbook.xlsx.write(res);
+  res.end();
+}
+
+// Every human team's players whose ratings changed enough (trade, signing,
+// progression, re-signing) that the existing NHL 27 player needs editing.
+app.get(
+  "/api/progression/export/needs-update",
+  asyncRoute(async (req, res) => {
+    await sendRosterSyncWorkbook(res, "needs_update", "players-needing-updates.xlsx");
+  })
+);
+
+// Every human team's players who don't exist in NHL 27 yet (drafted
+// rookies, most commonly) and need to be created from scratch.
+app.get(
+  "/api/progression/export/not-created",
+  asyncRoute(async (req, res) => {
+    await sendRosterSyncWorkbook(res, "not_created", "players-needing-creation.xlsx");
   })
 );
 

@@ -1480,6 +1480,36 @@ async function getRosterChanges() {
     }));
 }
 
+// Flattened rows behind the Progression tab's "Download Excel" buttons —
+// same in_game_status split and human-teams-only scope as getRosterChanges
+// above, but with the full attribute set attached (not just id/name/
+// position/overall) since the whole point is having exact values on hand
+// to type into NHL 27, not just a change summary. CPU teams excluded, same
+// reasoning as getRosterChanges: their rosters are never synced into the
+// game, so a CPU player never needs either spreadsheet. Free agents
+// (team_id null) are excluded too — they don't belong to any team's NHL 27
+// roster yet, so there's nothing to sync until someone signs them.
+async function getRosterSyncExport(status) {
+  if (!["needs_update", "not_created"].includes(status)) {
+    throw badRequest(`Unknown export status '${status}'`);
+  }
+  const [teams, players] = await Promise.all([getTeams(), getPlayers()]);
+  const teamsById = new Map(teams.map((t) => [t.id, t]));
+  return players
+    .filter((p) => p.inGameStatus === status && teamsById.get(p.teamId)?.isHumanControlled)
+    .map((p) => ({
+      team: teamsById.get(p.teamId),
+      id: p.id,
+      name: p.name,
+      position: p.position,
+      jerseyNumber: p.jerseyNumber,
+      age: p.age,
+      overall: p.overall,
+      attributes: p.attributes,
+    }))
+    .sort((a, b) => a.team.city.localeCompare(b.team.city) || a.name.localeCompare(b.name));
+}
+
 // Leaving `roster_update` (via the same universal Advance Phase action as
 // every other phase): every pending change is now "applied" in NHL 27, so
 // clear the flags, then generate the season's schedule now that rosters are
@@ -1951,14 +1981,15 @@ function sumNeedsAdjustedValue(playerIds, pickIds, playersById, picksById, teamN
   return playerTotal + pickTotal;
 }
 
-// Exponential decay calibrated so pick 1 overall sits at the top of the
-// scale, and value drops fast enough that round 4's first pick lands right
-// around 3 (matching the "very low, ~3-1 by round 4" instruction) — decay
-// continues within a round too, not just across round boundaries, so "the
-// picks after 1st" fall off immediately rather than only at round breaks.
+// Exponential decay calibrated so pick 1 overall sits at 15 — 25% below the
+// top of the 1-20 scale players use, since even a #1 pick is a lottery
+// ticket compared to a known NHL player — and value drops fast enough that
+// round 4's first pick lands right around 2. Decay continues within a round
+// too, not just across round boundaries, so "the picks after 1st" fall off
+// immediately rather than only at round breaks.
 function draftPickTradeValue(round, positionInRound, numTeams) {
   const x = round - 1 + (positionInRound - 1) / numTeams;
-  const raw = 20 * Math.pow(0.531, x);
+  const raw = 15 * Math.pow(0.531, x);
   return clamp(Math.round(raw), 1, 20);
 }
 
@@ -4198,6 +4229,7 @@ module.exports = {
   assignLineupSlot,
   autoSetLineup,
   getRosterChanges,
+  getRosterSyncExport,
   runProgression,
   getLatestProgression,
   progressPlayer, // exported for standalone analysis scripts (see server/scripts/) — pure, no DB calls

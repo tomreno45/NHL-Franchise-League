@@ -46,6 +46,8 @@ export const api = {
   simulateAllRemainingGames: () => send("POST", "/sim/advance-all", {}),
   runProgression: () => send("POST", "/progression/run", {}),
   getLatestProgression: () => get("/progression/latest"),
+  exportNeedsUpdateUrl: `${BASE}/progression/export/needs-update`,
+  exportNotCreatedUrl: `${BASE}/progression/export/not-created`,
   getSeason: () => get("/season"),
   getLeaguePhase: () => get("/league/phase"),
   advancePhase: () => send("POST", "/league/phase/advance", {}),

@@ -105,6 +105,25 @@ export default function Progression() {
 
   return (
     <div>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <a
+          href={api.exportNeedsUpdateUrl}
+          className="rounded-md bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-100 hover:bg-slate-700"
+        >
+          Download Needs-Update Excel
+        </a>
+        <a
+          href={api.exportNotCreatedUrl}
+          className="rounded-md bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-100 hover:bg-slate-700"
+        >
+          Download Needs-Creation Excel
+        </a>
+      </div>
+      <p className="mb-6 text-xs text-slate-500">
+        Every human team's players who need an existing NHL 27 player edited, or who don't exist in NHL 27 yet and
+        need to be created — full attribute values included so there's no need to look each one up individually.
+      </p>
+
       <div className="mb-6 flex items-center gap-3">
         {confirming ? (
           <>
