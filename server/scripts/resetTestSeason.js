@@ -74,8 +74,9 @@ async function main() {
   await pool.query("DELETE FROM notifications");
   await pool.query("DELETE FROM draft_order");
   await pool.query("DELETE FROM season_results");
+  await pool.query("DELETE FROM progression_runs");
   console.log(
-    "Cleared free_agent_bids, trade_proposals, cpu_trade_offers, cpu_trade_offer_batches, notifications, draft_order, season_results."
+    "Cleared free_agent_bids, trade_proposals, cpu_trade_offers, cpu_trade_offer_batches, notifications, draft_order, season_results, progression_runs."
   );
 
   console.log("\nDone — Test league reset to the beginning of season 1 with the new 84-game schedule.");

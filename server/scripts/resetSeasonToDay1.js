@@ -83,8 +83,15 @@ async function main() {
   await pool.query("DELETE FROM draft_order");
   await pool.query("DELETE FROM season_results");
   await pool.query("DELETE FROM phase_ready_teams");
+  // Every player's overall/attributes/age get reset by whatever re-import
+  // put them back to their day-1 values (this script itself doesn't touch
+  // overall/age/attributes, but is always run alongside one), so a leftover
+  // progression_runs row from before the reset would show change deltas
+  // against numbers that no longer exist — e.g. "88 -> 81" for a player
+  // who's back at 88 with no progression run against the reset roster yet.
+  await pool.query("DELETE FROM progression_runs");
   console.log(
-    `[${league}] Cleared free_agent_bids, trade_proposals, cpu_trade_offers, cpu_trade_offer_batches, notifications, draft_order, season_results, phase_ready_teams.`
+    `[${league}] Cleared free_agent_bids, trade_proposals, cpu_trade_offers, cpu_trade_offer_batches, notifications, draft_order, season_results, phase_ready_teams, progression_runs.`
   );
 
   console.log(`\n[${league}] Done — reset to the beginning of season 1 with the new 84-game schedule.`);
