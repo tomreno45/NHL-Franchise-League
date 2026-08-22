@@ -108,9 +108,7 @@ export default function ScoringLeaders() {
               <tr key={s.playerId} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
                 <td className="px-3 py-2 text-slate-400">{i + 1}</td>
                 <td className="px-3 py-2 text-slate-100">{s.name}</td>
-                <td className="px-3 py-2 text-slate-300">
-                  {s.team.city} {s.team.name}
-                </td>
+                <td className="px-3 py-2 text-slate-300">{s.team.abbr}</td>
                 <td className="px-3 py-2 text-slate-300">{s.position}</td>
                 <td className="px-3 py-2 text-right text-slate-300">{s.gamesPlayed}</td>
                 <td className={`px-3 py-2 text-right ${scorerSort.key === "goals" ? "font-semibold text-slate-100" : "text-slate-300"}`}>
@@ -158,9 +156,7 @@ export default function ScoringLeaders() {
               <tr key={g.playerId} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
                 <td className="px-3 py-2 text-slate-400">{i + 1}</td>
                 <td className="px-3 py-2 text-slate-100">{g.name}</td>
-                <td className="px-3 py-2 text-slate-300">
-                  {g.team.city} {g.team.name}
-                </td>
+                <td className="px-3 py-2 text-slate-300">{g.team.abbr}</td>
                 <td className="px-3 py-2 text-right text-slate-300">{g.gamesPlayed}</td>
                 <td className="px-3 py-2 text-right font-semibold text-slate-100">{g.wins}</td>
                 <td className="px-3 py-2 text-right text-slate-300">{g.losses}</td>

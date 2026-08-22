@@ -1,57 +1,6 @@
-import { useEffect, useState } from "react";
 import { useMyTeam } from "../MyTeamContext";
 import { useAuth } from "../AuthContext";
 import TeamLogo from "./TeamLogo";
-import { getCurrentSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from "../push";
-
-function NotificationToggle() {
-  const [subscribed, setSubscribed] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (!isPushSupported()) return;
-    getCurrentSubscription()
-      .then((sub) => setSubscribed(Boolean(sub)))
-      .catch(() => {});
-  }, []);
-
-  if (!isPushSupported()) return null;
-
-  const handleToggle = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      if (subscribed) {
-        await unsubscribeFromPush();
-        setSubscribed(false);
-      } else {
-        await subscribeToPush();
-        setSubscribed(true);
-      }
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      disabled={busy}
-      title={error || (subscribed ? "Notifications on — click to turn off" : "Click to enable push notifications")}
-      className={`rounded-md border px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 ${
-        subscribed
-          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:border-emerald-500/50"
-          : "border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"
-      }`}
-    >
-      {subscribed ? "🔔 On" : "🔔 Off"}
-    </button>
-  );
-}
 
 export default function AccountMenu() {
   const { user, logout } = useAuth();
@@ -66,7 +15,6 @@ export default function AccountMenu() {
           {user.league.label}
         </span>
       )}
-      <NotificationToggle />
       <div className="text-right">
         <p className="text-sm font-medium text-slate-100">{user.displayName}</p>
         <p className="text-xs text-slate-500">{myTeam ? `${myTeam.city} ${myTeam.name}` : "No team assigned"}</p>

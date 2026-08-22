@@ -126,7 +126,7 @@ function AppShell() {
     <div className="min-h-screen text-slate-200">
       <header className="flex items-center justify-between gap-3 border-b border-white/5 px-4 py-3 sm:px-6 sm:py-4">
         <div className="min-w-0">
-          <h1 className="truncate text-base font-bold tracking-tight text-slate-100 sm:text-xl">
+          <h1 className="text-base font-bold leading-tight tracking-tight text-slate-100 sm:text-xl">
             Hockey Franchise League
           </h1>
           <p className="hub-label hidden sm:block">Season Dashboard</p>
