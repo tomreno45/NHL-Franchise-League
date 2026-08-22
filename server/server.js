@@ -8,6 +8,7 @@ const store = require("./store");
 const { initDatabase } = require("./seed");
 const { sessionPool, runWithLeague, LEAGUE_SLUGS, LEAGUES } = require("./db");
 const { SKATER_ATTRS, GOALIE_ATTRS } = require("./data");
+const push = require("./push");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -235,6 +236,50 @@ function requireCommissioner(req, res, next) {
   }
   next();
 }
+
+// Web Push (browser notifications) — subscribe/unsubscribe are per-login,
+// not per-team, since a commissioner-only account (no team) can still want
+// them. No requireTeam here for that reason.
+app.get(
+  "/api/push/public-key",
+  asyncRoute(async (req, res) => {
+    res.json({ configured: push.configured, publicKey: push.configured ? push.publicKey : null });
+  })
+);
+
+app.post(
+  "/api/push/subscribe",
+  asyncRoute(async (req, res) => {
+    await push.saveSubscription(req.session.userId, req.body);
+    res.json({ subscribed: true });
+  })
+);
+
+app.post(
+  "/api/push/unsubscribe",
+  asyncRoute(async (req, res) => {
+    const { endpoint } = req.body;
+    if (!endpoint) return res.status(400).json({ error: "endpoint is required" });
+    await push.removeSubscription(endpoint);
+    res.json({ subscribed: false });
+  })
+);
+
+// The commissioner's own free-text broadcast — everything else that pushes
+// (phase advances, human trade offers) is triggered automatically from
+// store.js; this is the one manually-triggered send, so it lives here
+// rather than behind a store.js function of its own.
+app.post(
+  "/api/commissioner/push",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    const { title, message } = req.body;
+    if (!message || !message.trim()) return res.status(400).json({ error: "message is required" });
+    if (!push.configured) return res.status(400).json({ error: "Push notifications aren't configured on this server" });
+    await push.sendToAllUsers({ title: title?.trim() || "Hockey Franchise League", body: message.trim() });
+    res.json({ sent: true });
+  })
+);
 
 app.get(
   "/api/standings",

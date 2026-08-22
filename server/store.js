@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const { pool, withTransaction } = require("./db");
 const { generateNhlStyleSchedule } = require("./scheduleGenerator");
+const push = require("./push");
 const {
   SKATER_ATTRS,
   ATTRIBUTE_CATEGORIES,
@@ -1057,6 +1058,23 @@ async function getSeasonInfo() {
 // next entry — single-pass phases just use rounds: 1. This table is the
 // single source of truth for phase order; nothing else hardcodes "what
 // comes next."
+// Mirrors client/src/phaseLabels.js's PHASE_LABELS — kept as a separate
+// copy (server and client are separate bundles with no shared module today)
+// only for the "League has advanced to X" push notification's wording;
+// every other phase display already happens client-side off that file.
+const PHASE_LABELS = {
+  free_agency: "Free Agency",
+  trade_period: "Trade Period",
+  set_roster: "Set Roster",
+  roster_update: "Roster Update",
+  regular_season: "Regular Season",
+  playoffs: "Playoffs",
+  post_playoff_trade: "Post-Playoff Trade Round",
+  draft: "Draft",
+  progression: "Progression",
+  resigning: "Re-signing",
+};
+
 const PHASE_SEQUENCE = [
   { phase: "free_agency", rounds: 3 },
   { phase: "trade_period", rounds: 5 },
@@ -1168,10 +1186,17 @@ async function advanceLeaguePhase() {
 
   await PHASE_RESOLVERS[state.phase](state);
 
+  // Set only on an actual phase change (not a same-phase round bump) — a
+  // "League has advanced to Trade Period" push when round 2 of 5 just
+  // started would be confusing, since the league didn't move to a new
+  // stage at all.
+  let newPhase = null;
+
   if (state.phase_round < step.rounds) {
     await pool.query("UPDATE league_state SET phase_round = phase_round + 1 WHERE id = 1");
   } else if (stepIndex < PHASE_SEQUENCE.length - 1) {
     const nextPhase = PHASE_SEQUENCE[stepIndex + 1].phase;
+    newPhase = nextPhase;
     if (nextPhase === "draft") {
       // Entering the draft always starts the pick order over from the top.
       await pool.query("UPDATE league_state SET phase = $1, phase_round = 1, current_pick_index = 0 WHERE id = 1", [
@@ -1187,6 +1212,7 @@ async function advanceLeaguePhase() {
     // reuse the exact functions the draft-picks and draft-board features
     // already shipped with, applied to the new season number.
     const newSeasonNumber = state.season_number + 1;
+    newPhase = "free_agency";
 
     // Every rostered contract ages exactly one season here (once per full
     // trip through the loop) — anyone hitting 0 who wasn't just re-signed
@@ -1209,6 +1235,13 @@ async function advanceLeaguePhase() {
     );
     await ensureDraftPicksThroughWindow(newSeasonNumber);
     await generateRandomDraftClass(newSeasonNumber);
+  }
+
+  if (newPhase) {
+    await push.sendToAllUsers({
+      title: "Hockey Franchise League",
+      body: `League has advanced to ${PHASE_LABELS[newPhase] || newPhase}.`,
+    });
   }
 
   return getLeaguePhase();
@@ -3296,6 +3329,14 @@ async function proposeTradeOffer({ teamAId, teamBId, teamAAssets, teamBAssets })
     teamBId,
     `${evaluation.teamA.team.abbr} sent you a trade offer.`
   );
+  // Push only for human-to-human trade offers, not the CPU-targeted round-
+  // based proposals (submitTradeProposal) or CPU-initiated offers
+  // (generateCpuTradeOffers) — those aren't waiting on a specific person
+  // the way this is.
+  await push.sendToTeam(teamBId, {
+    title: "Trade Offer",
+    body: `${evaluation.teamA.team.city} ${evaluation.teamA.team.name} sent you a trade offer.`,
+  });
 
   return { offerId: rows[0].id, evaluation };
 }

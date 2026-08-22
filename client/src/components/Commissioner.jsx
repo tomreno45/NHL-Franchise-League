@@ -34,6 +34,11 @@ export default function Commissioner() {
   const [savingOrder, setSavingOrder] = useState(false);
   const [orderMessage, setOrderMessage] = useState(null);
 
+  const [pushTitle, setPushTitle] = useState("");
+  const [pushMessage, setPushMessage] = useState("");
+  const [sendingPush, setSendingPush] = useState(false);
+  const [pushResult, setPushResult] = useState(null);
+
   const reloadSeason = () => api.getSeason().then(setSeason).catch((e) => setError(e.message));
   const reloadPhase = () => api.getLeaguePhase().then(setPhase).catch((e) => setError(e.message));
   const reloadRosterChanges = () => api.getRosterChanges().then(setRosterChanges).catch((e) => setError(e.message));
@@ -134,6 +139,21 @@ export default function Commissioner() {
     }
   };
 
+  const handleSendPush = async () => {
+    setSendingPush(true);
+    setPushResult(null);
+    setError(null);
+    try {
+      await api.sendCommissionerPush(pushTitle, pushMessage);
+      setPushResult({ ok: true, text: "Sent." });
+      setPushMessage("");
+    } catch (e) {
+      setPushResult({ ok: false, text: e.message });
+    } finally {
+      setSendingPush(false);
+    }
+  };
+
   if (error) return <p className="text-red-500">{error}</p>;
   if (!season || !phase || !rosterChanges || !playoffResults || championId == null) {
     return <p className="text-slate-400">Loading commissioner dashboard…</p>;
@@ -145,6 +165,43 @@ export default function Commissioner() {
   return (
     <div className="flex flex-col gap-8">
       <LeagueFlow />
+
+      <div className="rounded-lg bg-slate-900 p-5">
+        <h3 className="mb-1 text-base font-semibold text-slate-100">Send Push Notification</h3>
+        <p className="mb-3 text-sm text-slate-500">
+          Goes out to every GM who's enabled push notifications (the bell icon, top right) — for anything the
+          automatic ones (phase advances, trade offers) don't cover.
+        </p>
+        <div className="flex flex-col gap-2">
+          <input
+            type="text"
+            value={pushTitle}
+            onChange={(e) => setPushTitle(e.target.value)}
+            placeholder="Title (optional — defaults to the league name)"
+            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-600"
+          />
+          <div className="flex items-center gap-3">
+            <input
+              type="text"
+              value={pushMessage}
+              onChange={(e) => setPushMessage(e.target.value)}
+              placeholder="Message"
+              className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-600"
+            />
+            <button
+              type="button"
+              onClick={handleSendPush}
+              disabled={sendingPush || !pushMessage.trim()}
+              className="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+            >
+              {sendingPush ? "Sending…" : "Send"}
+            </button>
+          </div>
+          {pushResult && (
+            <span className={`text-sm ${pushResult.ok ? "text-emerald-400" : "text-red-400"}`}>{pushResult.text}</span>
+          )}
+        </div>
+      </div>
 
       <div className="rounded-lg bg-slate-900 p-5">
         <h2 className="mb-3 text-lg font-semibold text-slate-100">League-Wide Pending Moves</h2>
