@@ -4096,6 +4096,75 @@ async function getPendingMoves(teamId) {
   return { freeAgentOffers, resignOffers, tradeOffers };
 }
 
+// The commissioner's league-wide view of everything currently in motion —
+// every human team's free agent bids and re-sign offers for the live round,
+// plus every pending trade a human has put on the table (both to another
+// human and to a CPU team). Unlike getPendingMoves above, this has no
+// privacy scoping at all by design — the commissioner needs to see
+// everyone's moves, not just their own.
+async function getLeagueWidePendingMoves() {
+  const leaguePhase = await getLeaguePhase();
+  const [teamsById, players, picks] = await Promise.all([getTeamsById(), getPlayers(), getDraftPicks()]);
+  const playersById = new Map(players.map((p) => [p.id, p]));
+  const picksById = new Map(picks.map((p) => [p.id, p]));
+  const describePlayer = (id) => {
+    const p = playersById.get(id);
+    return p ? { id: p.id, name: p.name, position: p.position, overall: p.overall } : { id };
+  };
+
+  const biddingOpen = ["free_agency", "trade_period"].includes(leaguePhase.phase);
+  let freeAgentBids = [];
+  if (biddingOpen) {
+    const { rows } = await pool.query("SELECT * FROM free_agent_bids WHERE season_number = $1 AND round = $2", [
+      leaguePhase.seasonNumber,
+      leaguePhase.phaseRound,
+    ]);
+    freeAgentBids = rows.map((b) => ({
+      team: teamsById.get(b.team_id),
+      player: describePlayer(b.player_id),
+      offer: { aavMillions: Number(b.aav_millions), years: b.years },
+    }));
+  }
+
+  const resignBoard = await getResigningBoard();
+  const resignOffers = resignBoard.players
+    .filter((p) => p.currentOffer)
+    .map((p) => ({
+      team: p.team,
+      player: { id: p.id, name: p.name, position: p.position, overall: p.overall },
+      offer: p.currentOffer,
+    }));
+
+  const cpuTargetTrades = (await getTradeProposals(null))
+    .filter((p) => p.status === "pending")
+    .map((p) => ({
+      proposingTeam: p.proposingTeam,
+      targetTeam: p.targetTeam,
+      offered: { players: p.offeredPlayers, picks: p.offeredPicks },
+      requestedValue: p.offeredValue,
+    }));
+
+  const { rows: humanOfferRows } = await pool.query(
+    "SELECT * FROM human_trade_offers WHERE status = 'pending' ORDER BY id"
+  );
+  const humanTrades = humanOfferRows.map((r) => ({
+    proposingTeam: teamsById.get(r.proposing_team_id),
+    targetTeam: teamsById.get(r.target_team_id),
+    offered: describeTradeOfferAssets(r.offered_player_ids, r.offered_pick_ids, playersById, picksById),
+    requested: describeTradeOfferAssets(r.requested_player_ids, r.requested_pick_ids, playersById, picksById),
+  }));
+
+  return {
+    seasonNumber: leaguePhase.seasonNumber,
+    phase: leaguePhase.phase,
+    phaseRound: leaguePhase.phaseRound,
+    freeAgentBids,
+    resignOffers,
+    humanTrades,
+    cpuTargetTrades,
+  };
+}
+
 module.exports = {
   getTeams,
   getPlayers,
@@ -4147,6 +4216,7 @@ module.exports = {
   submitTradeProposal,
   getTradeProposals,
   getPendingMoves,
+  getLeagueWidePendingMoves,
   getNotifications,
   getUnreadNotificationCount,
   markNotificationsRead,

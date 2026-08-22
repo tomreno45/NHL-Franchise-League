@@ -421,6 +421,18 @@ app.get(
   })
 );
 
+// Everything currently in motion across every human team — free agent
+// bids, re-sign offers, and pending trades (both to other humans and to
+// CPU teams) for the live round. No privacy scoping, unlike the per-team
+// MyGM > Pending Moves view — the commissioner sees everyone's.
+app.get(
+  "/api/commissioner/pending-moves",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await store.getLeagueWidePendingMoves());
+  })
+);
+
 // Every login account in this league (no password hashes — see store.js's
 // mapUserRow) — open to any logged-in user, not just the commissioner
 // (backs both the MyGM > User List tab everyone sees, and the Commissioner

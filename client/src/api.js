@@ -68,6 +68,7 @@ export const api = {
   getLineupSlots: () => get("/lineup/slots"),
   assignLineupSlot: (payload) => send("POST", "/lineup/assign", payload),
   getRosterChanges: () => get("/commissioner/roster-changes"),
+  getLeagueWidePendingMoves: () => get("/commissioner/pending-moves"),
   getUsers: () => get("/users"),
   createUser: (payload) => send("POST", "/commissioner/users", payload),
   deleteUser: (id) => send("DELETE", `/commissioner/users/${id}`, {}),

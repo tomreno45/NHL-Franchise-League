@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import LeagueFlow from "./LeagueFlow";
 import ManageUsers from "./ManageUsers";
+import LeaguePendingMoves from "./LeaguePendingMoves";
 import { seasonYearLabel } from "../seasonYear";
 
 const ROSTER_STATUS_LABELS = {
@@ -144,6 +145,11 @@ export default function Commissioner() {
   return (
     <div className="flex flex-col gap-8">
       <LeagueFlow />
+
+      <div className="rounded-lg bg-slate-900 p-5">
+        <h2 className="mb-3 text-lg font-semibold text-slate-100">League-Wide Pending Moves</h2>
+        <LeaguePendingMoves />
+      </div>
 
       <ManageUsers teams={teams} />
 
