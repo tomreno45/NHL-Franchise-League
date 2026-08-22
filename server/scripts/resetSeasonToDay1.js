@@ -33,16 +33,22 @@ const EMPTY_GOALIE_STATS = {
 async function main() {
   const league = process.env.LEAGUE;
 
-  // --- 1. Reset every player's season stats + in-game status + lineup slot ---
-  await pool.query(
-    `UPDATE players SET stats = $1, in_game_status = 'not_created', roster_assignment = 'MINORS' WHERE position <> 'G'`,
-    [JSON.stringify(EMPTY_SKATER_STATS)]
-  );
-  await pool.query(
-    `UPDATE players SET stats = $1, in_game_status = 'not_created', roster_assignment = 'MINORS' WHERE position = 'G'`,
-    [JSON.stringify(EMPTY_GOALIE_STATS)]
-  );
-  console.log(`[${league}] Reset all player season stats to zero, in_game_status to not_created, roster_assignment to MINORS.`);
+  // --- 1. Reset every player's season stats + lineup slot ---
+  //
+  // in_game_status deliberately untouched here — it tracks whether a
+  // player's DB record matches what actually exists in NHL 27, which has
+  // nothing to do with a season/stats reset. Every player currently on a
+  // roster was already created in-game before this reset runs, so forcing
+  // them all back to 'not_created' (the old behavior) was just wrong —
+  // it made the Progression/Commissioner "needs sync" views claim a full
+  // league's worth of players needed creating when none of them did.
+  await pool.query(`UPDATE players SET stats = $1, roster_assignment = 'MINORS' WHERE position <> 'G'`, [
+    JSON.stringify(EMPTY_SKATER_STATS),
+  ]);
+  await pool.query(`UPDATE players SET stats = $1, roster_assignment = 'MINORS' WHERE position = 'G'`, [
+    JSON.stringify(EMPTY_GOALIE_STATS),
+  ]);
+  console.log(`[${league}] Reset all player season stats to zero, roster_assignment to MINORS.`);
 
   // --- 2. Rebuild a sane starting lineup for every team ---
   const { rows: teams } = await pool.query(
