@@ -1,11 +1,11 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import StarRating, { CONFIDENCE_COLORS } from "./StarRating";
-import PlayerAttributes from "./PlayerAttributes";
 import TradeValueBar from "./TradeValueBar";
 import SortableHeader from "./SortableHeader";
 import CapBar from "./CapBar";
 import TeamLogo from "./TeamLogo";
+import PlayerDetailModal from "./PlayerDetailModal";
 import { sortRows } from "../sortUtils";
 
 const ROSTER_ACCESSORS = {
@@ -50,17 +50,17 @@ function ordinal(n) {
 
 // Shared by My Team > Roster (scoped to the viewer's own team) and
 // League > Rosters (any team, via a selector) — same table, sorting, and
-// expandable player-detail behavior either way.
+// player-detail modal either way.
 export default function RosterTable({ teamId }) {
   const [roster, setRoster] = useState(null);
   const [standings, setStandings] = useState(null);
   const [error, setError] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [sort, setSort] = useState({ key: null, dir: "desc" });
 
   useEffect(() => {
     if (teamId == null) return;
-    setExpandedId(null);
+    setSelectedPlayer(null);
     setRoster(null);
     api
       .getRoster(teamId)
@@ -119,74 +119,7 @@ export default function RosterTable({ teamId }) {
             </div>
           </div>
 
-          {/* Mobile: stacked cards, everything fits the screen width — no
-              horizontal scroll needed to see cap hit/status/etc. Desktop/
-              tablet keeps the denser sticky-column table below. */}
-          <div className="flex flex-col gap-2 sm:hidden">
-            {sortedRoster.map((p) => (
-              <div key={p.id} className="hub-card rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                  className="flex w-full items-center justify-between gap-3 p-3 text-left"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">#{p.jerseyNumber}</span>
-                      <span className="truncate font-semibold text-slate-100">{p.name}</span>
-                      <span className="text-xs text-slate-400">{p.position}</span>
-                    </div>
-                    <div className="mt-1.5 flex items-center gap-1.5">
-                      <StarRating value={p.potential.stars} colorClass={CONFIDENCE_COLORS[p.potential.confidence]} />
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[p.inGameStatus]}`}
-                      >
-                        {STATUS_LABELS[p.inGameStatus]}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-slate-100">{p.overall}</div>
-                      <div className="hub-label">OVR</div>
-                    </div>
-                    <span className={`text-slate-500 transition-transform ${expandedId === p.id ? "rotate-180" : ""}`}>
-                      ▾
-                    </span>
-                  </div>
-                </button>
-
-                <div className="grid grid-cols-4 gap-2 border-t border-white/5 px-3 py-2.5 text-center text-xs">
-                  <div>
-                    <div className="hub-label">Age</div>
-                    <div className="text-slate-200">{p.age}</div>
-                  </div>
-                  <div>
-                    <div className="hub-label">Cap Hit</div>
-                    <div className="text-slate-200">${p.capHit.toFixed(2)}M</div>
-                  </div>
-                  <div>
-                    <div className="hub-label">Yrs Left</div>
-                    <div className="text-slate-200">{p.contractYearsLeft}</div>
-                  </div>
-                  <div>
-                    <div className="hub-label">Trade Value</div>
-                    <div className="px-1">
-                      <TradeValueBar value={p.tradeValue} />
-                    </div>
-                  </div>
-                </div>
-
-                {expandedId === p.id && (
-                  <div className="border-t border-white/5 bg-black/20 p-4">
-                    <PlayerAttributes player={p} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="hub-card hidden overflow-x-auto rounded-xl sm:block">
+          <div className="hub-card overflow-x-auto rounded-xl">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5 text-left text-slate-400">
@@ -218,62 +151,53 @@ export default function RosterTable({ teamId }) {
               </thead>
               <tbody>
                 {sortedRoster.map((p, i) => (
-                  <Fragment key={p.id}>
-                    <tr
-                      onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                      className={`cursor-pointer border-b border-white/5 last:border-0 ${
-                        i % 2 === 0 ? "bg-white/[0.02]" : ""
-                      } ${expandedId === p.id ? "outline outline-1 -outline-offset-1 outline-cyan-400/40" : ""} hover:bg-white/5`}
+                  <tr
+                    key={p.id}
+                    onClick={() => setSelectedPlayer(p)}
+                    className={`cursor-pointer border-b border-white/5 last:border-0 ${
+                      i % 2 === 0 ? "bg-white/[0.02]" : ""
+                    } hover:bg-white/5`}
+                  >
+                    <td
+                      className={`sticky left-0 z-10 w-12 px-3 py-2 text-slate-400 ${
+                        i % 2 === 0 ? "bg-[#0d1920]" : "bg-[#08141b]"
+                      }`}
                     >
-                      <td
-                        className={`sticky left-0 z-10 w-12 px-3 py-2 text-slate-400 ${
-                          i % 2 === 0 ? "bg-[#0d1920]" : "bg-[#08141b]"
-                        }`}
-                      >
-                        {p.jerseyNumber}
-                      </td>
-                      <td
-                        className={`sticky left-12 z-10 border-r border-white/10 px-3 py-2 text-slate-100 ${
-                          i % 2 === 0 ? "bg-[#0d1920]" : "bg-[#08141b]"
-                        }`}
-                      >
-                        {p.name}
-                      </td>
-                      <td className="px-3 py-2 text-slate-300">{p.position}</td>
-                      <td className="px-3 py-2 text-right text-slate-300">{p.age}</td>
-                      <td className="px-3 py-2 text-right font-semibold text-slate-100">{p.overall}</td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          <StarRating value={p.potential.stars} colorClass={CONFIDENCE_COLORS[p.potential.confidence]} />
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <TradeValueBar value={p.tradeValue} />
-                      </td>
-                      <td className="px-3 py-2 text-right text-slate-300">${p.capHit.toFixed(2)}M</td>
-                      <td className="px-3 py-2 text-right text-slate-300">{p.contractYearsLeft}</td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[p.inGameStatus]}`}
-                        >
-                          {STATUS_LABELS[p.inGameStatus]}
-                        </span>
-                      </td>
-                    </tr>
-                    {expandedId === p.id && (
-                      <tr className="border-b border-white/5 bg-black/20 last:border-0">
-                        <td colSpan={10} className="px-6 py-4">
-                          <PlayerAttributes player={p} />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
+                      {p.jerseyNumber}
+                    </td>
+                    <td
+                      className={`sticky left-12 z-10 border-r border-white/10 px-3 py-2 text-slate-100 ${
+                        i % 2 === 0 ? "bg-[#0d1920]" : "bg-[#08141b]"
+                      }`}
+                    >
+                      {p.name}
+                    </td>
+                    <td className="px-3 py-2 text-slate-300">{p.position}</td>
+                    <td className="px-3 py-2 text-right text-slate-300">{p.age}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-slate-100">{p.overall}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <StarRating value={p.potential.stars} colorClass={CONFIDENCE_COLORS[p.potential.confidence]} />
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <TradeValueBar value={p.tradeValue} />
+                    </td>
+                    <td className="px-3 py-2 text-right text-slate-300">${p.capHit.toFixed(2)}M</td>
+                    <td className="px-3 py-2 text-right text-slate-300">{p.contractYearsLeft}</td>
+                    <td className="px-3 py-2">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[p.inGameStatus]}`}>
+                        {STATUS_LABELS[p.inGameStatus]}
+                      </span>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </>
       )}
+      {selectedPlayer && <PlayerDetailModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />}
     </div>
   );
 }
