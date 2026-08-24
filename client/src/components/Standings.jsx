@@ -27,7 +27,7 @@ export default function Standings() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-800 text-left text-slate-400">
-                  <th className="px-3 py-2 font-medium">Team</th>
+                  <th className="sticky left-0 z-10 bg-slate-800 px-3 py-2 font-medium">Team</th>
                   <th className="px-3 py-2 text-right font-medium">GP</th>
                   <th className="px-3 py-2 text-right font-medium">W</th>
                   <th className="px-3 py-2 text-right font-medium">L</th>
@@ -43,7 +43,11 @@ export default function Standings() {
                     key={t.teamId}
                     className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}
                   >
-                    <td className="whitespace-nowrap px-3 py-2 text-slate-100">
+                    <td
+                      className={`sticky left-0 z-10 whitespace-nowrap px-3 py-2 text-slate-100 ${
+                        i % 2 === 0 ? "bg-slate-900" : "bg-[#0a121e]"
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         <TeamLogo abbr={t.abbr} size={22} />
                         {t.city} {t.name}
