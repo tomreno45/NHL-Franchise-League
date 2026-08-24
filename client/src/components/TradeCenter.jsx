@@ -134,7 +134,14 @@ function AssetColumn({ label, teamLabel, teams, excludeTeamId, teamId, onTeamCha
           <table className="w-full min-w-[420px] text-sm">
             <thead className="sticky top-0 z-10 bg-slate-800">
               <tr className="text-left text-slate-400">
-                <SortableHeader label="Player" sortKey="name" currentKey={playerSort.key} direction={playerSort.dir} onSort={handleSort(setPlayerSort)} />
+                <SortableHeader
+                  label="Player"
+                  sortKey="name"
+                  currentKey={playerSort.key}
+                  direction={playerSort.dir}
+                  onSort={handleSort(setPlayerSort)}
+                  className="sticky left-0 z-20 border-r border-white/10 bg-slate-800"
+                />
                 <SortableHeader label="Pos" sortKey="position" currentKey={playerSort.key} direction={playerSort.dir} onSort={handleSort(setPlayerSort)} />
                 <SortableHeader label="Age" sortKey="age" currentKey={playerSort.key} direction={playerSort.dir} onSort={handleSort(setPlayerSort)} align="right" />
                 <SortableHeader label="OVR" sortKey="overall" currentKey={playerSort.key} direction={playerSort.dir} onSort={handleSort(setPlayerSort)} align="right" />
@@ -152,7 +159,13 @@ function AssetColumn({ label, teamLabel, teams, excludeTeamId, teamId, onTeamCha
                     onClick={() => !isDisabled && onToggle("playerIds", p.id)}
                     className={rowClass(isSelected, isDisabled)}
                   >
-                    <td className={`px-2 py-1.5 ${isSelected ? "text-sky-300" : "text-slate-100"}`}>{p.name}</td>
+                    <td
+                      className={`sticky left-0 z-10 border-r border-white/10 px-2 py-1.5 ${
+                        isSelected ? "bg-[#0f253d] text-sky-300" : "bg-slate-900 text-slate-100"
+                      }`}
+                    >
+                      {p.name}
+                    </td>
                     <td className="px-2 py-1.5 text-slate-300">{p.position}</td>
                     <td className="px-2 py-1.5 text-right text-slate-300">{p.age}</td>
                     <td className="px-2 py-1.5 text-right text-slate-300">{p.overall}</td>

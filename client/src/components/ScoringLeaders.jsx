@@ -93,8 +93,15 @@ export default function ScoringLeaders() {
         <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-800 text-left text-slate-400">
-              <th className="px-3 py-2 font-medium">Rank</th>
-              <SortableHeader label="Player" sortKey="name" currentKey={scorerSort.key} direction={scorerSort.dir} onSort={handleSort(setScorerSort)} />
+              <th className="sticky left-0 z-10 w-12 bg-slate-800 px-3 py-2 font-medium">Rank</th>
+              <SortableHeader
+                label="Player"
+                sortKey="name"
+                currentKey={scorerSort.key}
+                direction={scorerSort.dir}
+                onSort={handleSort(setScorerSort)}
+                className="sticky left-12 z-10 border-r border-white/10 bg-slate-800"
+              />
               <SortableHeader label="Team" sortKey="team" currentKey={scorerSort.key} direction={scorerSort.dir} onSort={handleSort(setScorerSort)} />
               <SortableHeader label="Pos" sortKey="position" currentKey={scorerSort.key} direction={scorerSort.dir} onSort={handleSort(setScorerSort)} />
               <SortableHeader label="GP" sortKey="gamesPlayed" currentKey={scorerSort.key} direction={scorerSort.dir} onSort={handleSort(setScorerSort)} align="right" />
@@ -106,8 +113,16 @@ export default function ScoringLeaders() {
           <tbody>
             {filteredScorers.map((s, i) => (
               <tr key={s.playerId} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
-                <td className="px-3 py-2 text-slate-400">{i + 1}</td>
-                <td className="px-3 py-2 text-slate-100">{s.name}</td>
+                <td className={`sticky left-0 z-10 w-12 px-3 py-2 text-slate-400 ${i % 2 === 0 ? "bg-slate-900" : "bg-[#0a121e]"}`}>
+                  {i + 1}
+                </td>
+                <td
+                  className={`sticky left-12 z-10 border-r border-white/10 px-3 py-2 text-slate-100 ${
+                    i % 2 === 0 ? "bg-slate-900" : "bg-[#0a121e]"
+                  }`}
+                >
+                  {s.name}
+                </td>
                 <td className="px-3 py-2 text-slate-300">{s.team.abbr}</td>
                 <td className="px-3 py-2 text-slate-300">{s.position}</td>
                 <td className="px-3 py-2 text-right text-slate-300">{s.gamesPlayed}</td>
@@ -139,8 +154,15 @@ export default function ScoringLeaders() {
         <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-800 text-left text-slate-400">
-              <th className="px-3 py-2 font-medium">Rank</th>
-              <SortableHeader label="Player" sortKey="name" currentKey={goalieSort.key} direction={goalieSort.dir} onSort={handleSort(setGoalieSort)} />
+              <th className="sticky left-0 z-10 w-12 bg-slate-800 px-3 py-2 font-medium">Rank</th>
+              <SortableHeader
+                label="Player"
+                sortKey="name"
+                currentKey={goalieSort.key}
+                direction={goalieSort.dir}
+                onSort={handleSort(setGoalieSort)}
+                className="sticky left-12 z-10 border-r border-white/10 bg-slate-800"
+              />
               <SortableHeader label="Team" sortKey="team" currentKey={goalieSort.key} direction={goalieSort.dir} onSort={handleSort(setGoalieSort)} />
               <SortableHeader label="GP" sortKey="gamesPlayed" currentKey={goalieSort.key} direction={goalieSort.dir} onSort={handleSort(setGoalieSort)} align="right" />
               <SortableHeader label="W" sortKey="wins" currentKey={goalieSort.key} direction={goalieSort.dir} onSort={handleSort(setGoalieSort)} align="right" />
@@ -154,8 +176,16 @@ export default function ScoringLeaders() {
           <tbody>
             {filteredGoalies.map((g, i) => (
               <tr key={g.playerId} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
-                <td className="px-3 py-2 text-slate-400">{i + 1}</td>
-                <td className="px-3 py-2 text-slate-100">{g.name}</td>
+                <td className={`sticky left-0 z-10 w-12 px-3 py-2 text-slate-400 ${i % 2 === 0 ? "bg-slate-900" : "bg-[#0a121e]"}`}>
+                  {i + 1}
+                </td>
+                <td
+                  className={`sticky left-12 z-10 border-r border-white/10 px-3 py-2 text-slate-100 ${
+                    i % 2 === 0 ? "bg-slate-900" : "bg-[#0a121e]"
+                  }`}
+                >
+                  {g.name}
+                </td>
                 <td className="px-3 py-2 text-slate-300">{g.team.abbr}</td>
                 <td className="px-3 py-2 text-right text-slate-300">{g.gamesPlayed}</td>
                 <td className="px-3 py-2 text-right font-semibold text-slate-100">{g.wins}</td>

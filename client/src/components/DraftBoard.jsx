@@ -143,8 +143,8 @@ export default function DraftBoard() {
       <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
         <thead>
           <tr className="bg-slate-800 text-left text-slate-400">
-            <th className="px-3 py-2 text-right font-medium">Rank</th>
-            <th className="px-3 py-2 font-medium">Name</th>
+            <th className="sticky left-0 z-10 w-14 bg-slate-800 px-3 py-2 text-right font-medium">Rank</th>
+            <th className="sticky left-14 z-10 border-r border-white/10 bg-slate-800 px-3 py-2 font-medium">Name</th>
             <th className="px-3 py-2 font-medium">Pos</th>
             <th className="px-3 py-2 font-medium">Nationality</th>
             <th className="px-3 py-2 font-medium">Ht</th>
@@ -155,8 +155,20 @@ export default function DraftBoard() {
         <tbody>
           {prospects.map((p, i) => (
             <tr key={p.id} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
-              <td className="px-3 py-2 text-right text-slate-300">{p.prospectRank}</td>
-              <td className="px-3 py-2 text-slate-100">{p.name}</td>
+              <td
+                className={`sticky left-0 z-10 w-14 px-3 py-2 text-right text-slate-300 ${
+                  i % 2 === 0 ? "bg-slate-900" : "bg-[#0a121e]"
+                }`}
+              >
+                {p.prospectRank}
+              </td>
+              <td
+                className={`sticky left-14 z-10 border-r border-white/10 px-3 py-2 text-slate-100 ${
+                  i % 2 === 0 ? "bg-slate-900" : "bg-[#0a121e]"
+                }`}
+              >
+                {p.name}
+              </td>
               <td className="px-3 py-2 text-slate-300">{p.position}</td>
               <td className="px-3 py-2 text-slate-300">{p.nationality}</td>
               <td className="px-3 py-2 text-slate-300">{formatHeight(p.heightInches)}</td>

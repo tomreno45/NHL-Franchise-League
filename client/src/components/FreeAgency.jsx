@@ -49,7 +49,7 @@ function BidRow({ player, onBid }) {
 
   return (
     <tr className="border-b border-slate-800 last:border-0">
-      <td className="px-3 py-2 text-slate-100">{player.name}</td>
+      <td className="sticky left-0 z-10 bg-slate-900 px-3 py-2 text-slate-100">{player.name}</td>
       <td className="px-3 py-2 text-slate-300">{player.position}</td>
       <td className="px-3 py-2 text-right text-slate-300">{player.age}</td>
       <td className="px-3 py-2 text-right font-semibold text-slate-100">{player.overall}</td>
@@ -97,7 +97,7 @@ function BidRow({ player, onBid }) {
 function ReadOnlyPlayerRow({ player, extraCell }) {
   return (
     <tr className="border-b border-slate-800 last:border-0">
-      <td className="px-3 py-2 text-slate-100">{player.name}</td>
+      <td className="sticky left-0 z-10 bg-slate-900 px-3 py-2 text-slate-100">{player.name}</td>
       {extraCell}
       <td className="px-3 py-2 text-slate-300">{player.position}</td>
       <td className="px-3 py-2 text-right text-slate-300">{player.age}</td>
@@ -169,7 +169,7 @@ export default function FreeAgency() {
           <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-800 text-left text-slate-400">
-                <SortableHeader label="Name" sortKey="name" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} />
+                <SortableHeader label="Name" sortKey="name" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} className="sticky left-0 z-10 bg-slate-800" />
                 <SortableHeader label="Pos" sortKey="position" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} />
                 <SortableHeader label="Age" sortKey="age" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} align="right" />
                 <SortableHeader label="OVR" sortKey="overall" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} align="right" />
@@ -189,7 +189,7 @@ export default function FreeAgency() {
           <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-800 text-left text-slate-400">
-                <SortableHeader label="Name" sortKey="name" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} />
+                <SortableHeader label="Name" sortKey="name" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} className="sticky left-0 z-10 bg-slate-800" />
                 <SortableHeader label="Pos" sortKey="position" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} />
                 <SortableHeader label="Age" sortKey="age" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} align="right" />
                 <SortableHeader label="OVR" sortKey="overall" currentKey={faSort.key} direction={faSort.dir} onSort={onFaSort} align="right" />
@@ -219,7 +219,7 @@ export default function FreeAgency() {
           <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-800 text-left text-slate-400">
-                <SortableHeader label="Name" sortKey="name" currentKey={expiringSort.key} direction={expiringSort.dir} onSort={onExpiringSort} />
+                <SortableHeader label="Name" sortKey="name" currentKey={expiringSort.key} direction={expiringSort.dir} onSort={onExpiringSort} className="sticky left-0 z-10 bg-slate-800" />
                 <SortableHeader label="Team" sortKey="team" currentKey={expiringSort.key} direction={expiringSort.dir} onSort={onExpiringSort} />
                 <SortableHeader label="Pos" sortKey="position" currentKey={expiringSort.key} direction={expiringSort.dir} onSort={onExpiringSort} />
                 <SortableHeader label="Age" sortKey="age" currentKey={expiringSort.key} direction={expiringSort.dir} onSort={onExpiringSort} align="right" />

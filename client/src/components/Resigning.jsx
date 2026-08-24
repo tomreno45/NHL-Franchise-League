@@ -26,7 +26,7 @@ function OfferRow({ player, teamId, onOffer }) {
 
   return (
     <tr className="border-b border-slate-800 last:border-0">
-      <td className="px-3 py-2 text-slate-100">{player.name}</td>
+      <td className="sticky left-0 z-10 bg-slate-900 px-3 py-2 text-slate-100">{player.name}</td>
       <td className="px-3 py-2 text-slate-300">{player.position}</td>
       <td className="px-3 py-2 text-right text-slate-300">{player.age}</td>
       <td className="px-3 py-2 text-right font-semibold text-slate-100">{player.overall}</td>
@@ -83,7 +83,7 @@ function OfferRow({ player, teamId, onOffer }) {
 function ReadOnlyRow({ player }) {
   return (
     <tr className="border-b border-slate-800 last:border-0">
-      <td className="px-3 py-2 text-slate-100">{player.name}</td>
+      <td className="sticky left-0 z-10 bg-slate-900 px-3 py-2 text-slate-100">{player.name}</td>
       <td className="px-3 py-2 text-slate-300">{player.position}</td>
       <td className="px-3 py-2 text-right text-slate-300">{player.age}</td>
       <td className="px-3 py-2 text-right font-semibold text-slate-100">{player.overall}</td>
@@ -148,7 +148,7 @@ export default function Resigning() {
         <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-800 text-left text-slate-400">
-              <th className="px-3 py-2 font-medium">Name</th>
+              <th className="sticky left-0 z-10 bg-slate-800 px-3 py-2 font-medium">Name</th>
               <th className="px-3 py-2 font-medium">Pos</th>
               <th className="px-3 py-2 text-right font-medium">Age</th>
               <th className="px-3 py-2 text-right font-medium">OVR</th>
@@ -169,7 +169,7 @@ export default function Resigning() {
         <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-800 text-left text-slate-400">
-              <th className="px-3 py-2 font-medium">Name</th>
+              <th className="sticky left-0 z-10 bg-slate-800 px-3 py-2 font-medium">Name</th>
               <th className="px-3 py-2 font-medium">Pos</th>
               <th className="px-3 py-2 text-right font-medium">Age</th>
               <th className="px-3 py-2 text-right font-medium">OVR</th>

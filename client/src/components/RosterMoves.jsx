@@ -78,7 +78,7 @@ export default function RosterMoves() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-800 text-left text-slate-400">
-                  <th className="px-3 py-2 font-medium">Name</th>
+                  <th className="sticky left-0 z-10 bg-slate-800 px-3 py-2 font-medium">Name</th>
                   <th className="px-3 py-2 font-medium">Pos</th>
                   <th className="px-3 py-2 text-right font-medium">Age</th>
                   <th className="px-3 py-2 text-right font-medium">OVR</th>
@@ -90,7 +90,7 @@ export default function RosterMoves() {
               <tbody>
                 {activeRoster.map((p, i) => (
                   <tr key={p.id} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
-                    <td className="px-3 py-2 text-slate-100">{p.name}</td>
+                    <td className="sticky left-0 z-10 bg-slate-900 px-3 py-2 text-slate-100">{p.name}</td>
                     <td className="px-3 py-2 text-slate-300">{p.position}</td>
                     <td className="px-3 py-2 text-right text-slate-300">{p.age}</td>
                     <td className="px-3 py-2 text-right text-slate-300">{p.overall}</td>
@@ -122,7 +122,7 @@ export default function RosterMoves() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-800 text-left text-slate-400">
-                    <th className="px-3 py-2 font-medium">Name</th>
+                    <th className="sticky left-0 z-10 bg-slate-800 px-3 py-2 font-medium">Name</th>
                     <th className="px-3 py-2 font-medium">Pos</th>
                     <th className="px-3 py-2 text-right font-medium">Age</th>
                     <th className="px-3 py-2 text-right font-medium">OVR</th>
@@ -133,7 +133,7 @@ export default function RosterMoves() {
                 <tbody>
                   {minorsRoster.map((p, i) => (
                     <tr key={p.id} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
-                      <td className="px-3 py-2 text-slate-100">{p.name}</td>
+                      <td className="sticky left-0 z-10 bg-slate-900 px-3 py-2 text-slate-100">{p.name}</td>
                       <td className="px-3 py-2 text-slate-300">{p.position}</td>
                       <td className="px-3 py-2 text-right text-slate-300">{p.age}</td>
                       <td className="px-3 py-2 text-right text-slate-300">{p.overall}</td>
