@@ -4218,6 +4218,7 @@ async function getLeagueWidePendingMoves() {
       proposingTeam: p.proposingTeam,
       targetTeam: p.targetTeam,
       offered: { players: p.offeredPlayers, picks: p.offeredPicks },
+      requested: { players: p.requestedPlayers, picks: p.requestedPicks },
       requestedValue: p.offeredValue,
     }));
 

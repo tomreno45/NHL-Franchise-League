@@ -130,6 +130,7 @@ export default function LeaguePendingMoves() {
                   <th className="px-3 py-2 font-medium">Proposing Team</th>
                   <th className="px-3 py-2 font-medium">Target Team</th>
                   <th className="px-3 py-2 font-medium">Offers</th>
+                  <th className="px-3 py-2 font-medium">Wants Back</th>
                   <th className="px-3 py-2 font-medium">Value</th>
                 </tr>
               </thead>
@@ -139,6 +140,7 @@ export default function LeaguePendingMoves() {
                     <td className="px-3 py-2 text-slate-100">{teamLabel(t.proposingTeam)}</td>
                     <td className="px-3 py-2 text-slate-100">{teamLabel(t.targetTeam)}</td>
                     <td className="px-3 py-2 text-slate-400">{describeAssets(t.offered.players, t.offered.picks)}</td>
+                    <td className="px-3 py-2 text-slate-400">{describeAssets(t.requested.players, t.requested.picks)}</td>
                     <td className="px-3 py-2">
                       <TradeValueBar value={t.requestedValue} max={85} colorClass="bg-sky-400" />
                     </td>
