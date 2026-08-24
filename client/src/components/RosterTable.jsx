@@ -123,8 +123,22 @@ export default function RosterTable({ teamId }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5 text-left text-slate-400">
-                  <SortableHeader label="#" sortKey="jerseyNumber" currentKey={sort.key} direction={sort.dir} onSort={handleSort} />
-                  <SortableHeader label="Name" sortKey="name" currentKey={sort.key} direction={sort.dir} onSort={handleSort} />
+                  <SortableHeader
+                    label="#"
+                    sortKey="jerseyNumber"
+                    currentKey={sort.key}
+                    direction={sort.dir}
+                    onSort={handleSort}
+                    className="sticky left-0 z-10 w-12 bg-[#08141b]"
+                  />
+                  <SortableHeader
+                    label="Name"
+                    sortKey="name"
+                    currentKey={sort.key}
+                    direction={sort.dir}
+                    onSort={handleSort}
+                    className="sticky left-12 z-10 border-r border-white/10 bg-[#08141b]"
+                  />
                   <SortableHeader label="Pos" sortKey="position" currentKey={sort.key} direction={sort.dir} onSort={handleSort} />
                   <SortableHeader label="Age" sortKey="age" currentKey={sort.key} direction={sort.dir} onSort={handleSort} align="right" />
                   <SortableHeader label="OVR" sortKey="overall" currentKey={sort.key} direction={sort.dir} onSort={handleSort} align="right" />
@@ -144,8 +158,20 @@ export default function RosterTable({ teamId }) {
                         i % 2 === 0 ? "bg-white/[0.02]" : ""
                       } ${expandedId === p.id ? "outline outline-1 -outline-offset-1 outline-cyan-400/40" : ""} hover:bg-white/5`}
                     >
-                      <td className="px-3 py-2 text-slate-400">{p.jerseyNumber}</td>
-                      <td className="px-3 py-2 text-slate-100">{p.name}</td>
+                      <td
+                        className={`sticky left-0 z-10 w-12 px-3 py-2 text-slate-400 ${
+                          i % 2 === 0 ? "bg-[#0d1920]" : "bg-[#08141b]"
+                        }`}
+                      >
+                        {p.jerseyNumber}
+                      </td>
+                      <td
+                        className={`sticky left-12 z-10 border-r border-white/10 px-3 py-2 text-slate-100 ${
+                          i % 2 === 0 ? "bg-[#0d1920]" : "bg-[#08141b]"
+                        }`}
+                      >
+                        {p.name}
+                      </td>
                       <td className="px-3 py-2 text-slate-300">{p.position}</td>
                       <td className="px-3 py-2 text-right text-slate-300">{p.age}</td>
                       <td className="px-3 py-2 text-right font-semibold text-slate-100">{p.overall}</td>
