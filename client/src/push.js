@@ -33,7 +33,12 @@ export async function subscribeToPush() {
   if (permission !== "granted") {
     throw new Error("Notification permission was denied");
   }
-  const registration = await navigator.serviceWorker.register("/sw.js");
+  // register() resolves as soon as the worker is registered, not once it's
+  // active — Chrome tolerates subscribing before that, but Safari/WebKit
+  // throws ("no active Service Worker") if pushManager.subscribe() runs
+  // first. `ready` resolves only once a worker is actually active.
+  await navigator.serviceWorker.register("/sw.js");
+  const registration = await navigator.serviceWorker.ready;
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(publicKey),
