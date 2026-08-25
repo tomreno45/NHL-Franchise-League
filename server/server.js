@@ -178,6 +178,22 @@ app.post(
       return res.status(401).json({ error: "Invalid username or password" });
     }
     const memberships = await accounts.getMemberships(account.id);
+
+    // req.session.isAdmin is set here, once, regardless of which branch
+    // below runs — it's a property of the login itself, not of which
+    // league (if any) ends up active, so it has to survive
+    // /api/auth/select-league and every later request the same way
+    // accountId does.
+    if (account.isAdmin) {
+      // Admins always get an explicit choice, even with exactly one
+      // membership or none at all — they might want the Admin Panel
+      // instead of jumping straight into a league, so this never
+      // auto-finalizes the way a single-membership non-admin login does.
+      req.session.accountId = account.id;
+      req.session.isAdmin = true;
+      return res.json({ needsLeagueSelection: true, account, memberships: describeMemberships(memberships) });
+    }
+
     if (memberships.length === 0) {
       return res.status(403).json({ error: "This account isn't part of any league yet — ask your commissioner to add you." });
     }
@@ -188,10 +204,12 @@ app.post(
       // nothing protected is reachable until /api/auth/select-league below
       // finishes the job.
       req.session.accountId = account.id;
+      req.session.isAdmin = false;
       return res.json({ needsLeagueSelection: true, account, memberships: describeMemberships(memberships) });
     }
     const [membership] = memberships;
     req.session.accountId = account.id;
+    req.session.isAdmin = false;
     req.session.teamId = membership.teamId;
     req.session.leagueSlug = membership.leagueSlug;
     req.session.role = membership.role;
@@ -285,6 +303,128 @@ function requireAccount(req, res, next) {
   }
   next();
 }
+
+// Guards every /api/admin/* route. Deliberately does NOT require
+// leagueSlug (unlike requireAuth below) — admin actions span every league,
+// so an admin who logged in and went straight to the Admin Panel without
+// ever picking one still needs full access. isAdmin is set once at login
+// (see /api/auth/login) and carries forward through league switches the
+// same way accountId does.
+function requireAdmin(req, res, next) {
+  if (!req.session.accountId || !req.session.isAdmin) {
+    return res.status(403).json({ error: "Admin only" });
+  }
+  next();
+}
+
+// The in-app equivalent of the developer CLIs (createUser.js,
+// resetPassword.js, deleteAccount.js, migrateToGlobalAccounts.js) — every
+// account in every league, not scoped to the caller's own league the way
+// ManageUsers.jsx/the /api/commissioner/* routes are. Registered before
+// requireAuth below since these don't need (and admins may not have) an
+// active leagueSlug.
+
+app.get(
+  "/api/admin/accounts",
+  requireAdmin,
+  asyncRoute(async (req, res) => {
+    res.json(await accounts.getAllAccountsWithMemberships());
+  })
+);
+
+app.post(
+  "/api/admin/accounts",
+  requireAdmin,
+  asyncRoute(async (req, res) => {
+    const { username, password, displayName } = req.body;
+    const account = await accounts.createAccount({ username, password, displayName });
+    res.status(201).json(account);
+  })
+);
+
+app.post(
+  "/api/admin/accounts/:id/reset-password",
+  requireAdmin,
+  asyncRoute(async (req, res) => {
+    const { newPassword } = req.body;
+    if (!newPassword) return res.status(400).json({ error: "newPassword is required" });
+    const account = await accounts.resetPassword(Number(req.params.id), newPassword);
+    res.json(account);
+  })
+);
+
+// Full, irreversible delete — every membership and push subscription goes
+// with it (ON DELETE CASCADE). Mirrors the is_human_controlled cleanup
+// scripts/deleteAccount.js does (a bug was caught there during testing:
+// this flip is easy to forget and leaves a team stuck human-controlled
+// with nobody actually assigned).
+app.delete(
+  "/api/admin/accounts/:id",
+  requireAdmin,
+  asyncRoute(async (req, res) => {
+    const accountId = Number(req.params.id);
+    const memberships = await accounts.getMemberships(accountId);
+    const account = await accounts.deleteAccountEntirely(accountId);
+    for (const m of memberships) {
+      if (m.teamId == null) continue;
+      const remaining = await accounts.countMembersOnTeam(m.leagueSlug, m.teamId);
+      if (remaining === 0) {
+        await runWithLeague(m.leagueSlug, () => store.setTeamHumanControlled(m.teamId, false));
+      }
+    }
+    res.json({ deleted: true, account });
+  })
+);
+
+// Teams for an arbitrary league, for the Admin Panel's add-membership team
+// picker — /api/teams (below) is scoped to the caller's own active league,
+// which an admin may not have set.
+app.get(
+  "/api/admin/teams/:leagueSlug",
+  requireAdmin,
+  asyncRoute(async (req, res) => {
+    const { leagueSlug } = req.params;
+    if (!LEAGUE_SLUGS.includes(leagueSlug)) return res.status(400).json({ error: "Unknown league" });
+    res.json(await runWithLeague(leagueSlug, () => store.getTeams()));
+  })
+);
+
+app.post(
+  "/api/admin/accounts/:id/memberships",
+  requireAdmin,
+  asyncRoute(async (req, res) => {
+    const accountId = Number(req.params.id);
+    const { leagueSlug, teamId, role } = req.body;
+    if (!LEAGUE_SLUGS.includes(leagueSlug)) return res.status(400).json({ error: "Unknown league" });
+    const resolvedTeamId = teamId ? Number(teamId) : null;
+    if (resolvedTeamId != null) {
+      const teams = await runWithLeague(leagueSlug, () => store.getTeams());
+      if (!teams.some((t) => t.id === resolvedTeamId)) {
+        return res.status(400).json({ error: "Unknown team" });
+      }
+    }
+    const membership = await accounts.addMembership({ accountId, leagueSlug, teamId: resolvedTeamId, role });
+    if (resolvedTeamId != null) {
+      await runWithLeague(leagueSlug, () => store.setTeamHumanControlled(resolvedTeamId, true));
+    }
+    res.status(201).json(membership);
+  })
+);
+
+app.delete(
+  "/api/admin/memberships/:membershipId",
+  requireAdmin,
+  asyncRoute(async (req, res) => {
+    const result = await accounts.removeMembershipByIdAsAdmin(Number(req.params.membershipId));
+    if (result.teamId != null) {
+      const remaining = await accounts.countMembersOnTeam(result.leagueSlug, result.teamId);
+      if (remaining === 0) {
+        await runWithLeague(result.leagueSlug, () => store.setTeamHumanControlled(result.teamId, false));
+      }
+    }
+    res.json(result);
+  })
+);
 
 // Everything below this line requires a logged-in session with a league
 // actively selected — a multi-league account that's logged in but hasn't

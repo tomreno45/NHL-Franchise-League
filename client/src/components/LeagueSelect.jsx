@@ -8,7 +8,7 @@ import { useAuth } from "../AuthContext";
 // inside Login.jsx, since it's a distinct step with its own back-out
 // (logout) rather than part of the credentials form.
 export default function LeagueSelect({ account, memberships }) {
-  const { selectLeague, logout } = useAuth();
+  const { selectLeague, logout, openAdminPanel } = useAuth();
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
 
@@ -27,7 +27,7 @@ export default function LeagueSelect({ account, memberships }) {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="hub-card w-full max-w-sm rounded-xl p-6">
         <h1 className="mb-1 text-lg font-bold text-slate-100">Welcome back, {account.displayName}</h1>
-        <p className="mb-6 hub-label">Choose a league</p>
+        <p className="mb-6 hub-label">{memberships.length > 0 ? "Choose a league" : "Choose where to go"}</p>
 
         <div className="mb-4 flex flex-col gap-2">
           {memberships.map((m) => (
@@ -41,6 +41,16 @@ export default function LeagueSelect({ account, memberships }) {
               {busy === m.leagueSlug ? "Opening…" : m.leagueLabel}
             </button>
           ))}
+          {account.isAdmin && (
+            <button
+              type="button"
+              onClick={openAdminPanel}
+              disabled={busy != null}
+              className="rounded-md border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-left text-sm font-medium text-amber-300 transition-colors hover:border-amber-400/60 hover:bg-amber-400/20 disabled:opacity-50"
+            >
+              Admin Panel
+            </button>
+          )}
         </div>
 
         {error && <p className="mb-4 text-sm text-red-400">{error}</p>}

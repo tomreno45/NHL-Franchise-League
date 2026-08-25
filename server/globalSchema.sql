@@ -14,6 +14,16 @@ CREATE TABLE IF NOT EXISTS accounts (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- A global superuser flag, unrelated to the per-league 'commissioner' role
+-- in account_memberships below — a commissioner's authority is scoped to
+-- one league; an admin can create/edit/delete any account and its
+-- memberships in any league (the in-app equivalent of the
+-- scripts/*.js developer CLIs). Nothing sets this except
+-- scripts/setAdmin.js — there's no in-app way to grant it, the same
+-- deliberate bootstrap-only trust boundary as everything else that
+-- crosses league lines.
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
+
 -- One row per (account, league) — which team (if any) and role that
 -- account has in that specific league. team_id is NOT a real foreign key
 -- (teams live in a different physical database per league, so a

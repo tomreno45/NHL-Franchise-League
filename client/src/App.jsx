@@ -6,6 +6,7 @@ import { NotificationsProvider, useNotifications } from "./NotificationsContext"
 import { PHASE_LABELS } from "./phaseLabels";
 import Login from "./components/Login";
 import LeagueSelect from "./components/LeagueSelect";
+import AdminPanel from "./components/AdminPanel";
 import AccountMenu from "./components/AccountMenu";
 import PhaseBanner from "./components/PhaseBanner";
 import PhaseLock from "./components/PhaseLock";
@@ -222,7 +223,7 @@ function AppShell() {
 }
 
 function AuthGate() {
-  const { user } = useAuth();
+  const { user, adminPanelOpen } = useAuth();
 
   if (user === undefined) {
     return (
@@ -234,6 +235,15 @@ function AuthGate() {
 
   if (user === null) {
     return <Login />;
+  }
+
+  // isAdmin lives on `account` while a league hasn't been picked yet, and
+  // directly on `user` once fully logged in (buildUserResponse spreads the
+  // account onto the response) — either shape gets checked here since the
+  // Admin Panel is reachable from both (see LeagueSelect/AccountMenu).
+  const isAdmin = user.needsLeagueSelection ? user.account.isAdmin : user.isAdmin;
+  if (adminPanelOpen && isAdmin) {
+    return <AdminPanel />;
   }
 
   if (user.needsLeagueSelection) {

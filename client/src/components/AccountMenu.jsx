@@ -55,7 +55,7 @@ function LeagueBadge({ user, selectLeague }) {
 }
 
 export default function AccountMenu() {
-  const { user, logout, selectLeague } = useAuth();
+  const { user, logout, selectLeague, openAdminPanel } = useAuth();
   const { teams } = useMyTeam();
 
   const myTeam = teams.find((t) => t.id === user?.teamId);
@@ -63,6 +63,15 @@ export default function AccountMenu() {
   return (
     <div className="flex items-center gap-3">
       <LeagueBadge user={user} selectLeague={selectLeague} />
+      {user.isAdmin && (
+        <button
+          type="button"
+          onClick={openAdminPanel}
+          className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2.5 py-1.5 text-xs font-medium text-amber-300 hover:border-amber-400/60 hover:bg-amber-400/20"
+        >
+          Admin
+        </button>
+      )}
       <div className="text-right">
         <p className="text-sm font-medium text-slate-100">{user.displayName}</p>
         <p className="text-xs text-slate-500">{myTeam ? `${myTeam.city} ${myTeam.name}` : "No team assigned"}</p>

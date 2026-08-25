@@ -54,6 +54,7 @@ function mapAccountRow(row) {
     id: row.id,
     username: row.username,
     displayName: row.display_name,
+    isAdmin: row.is_admin,
     createdAt: row.created_at,
   };
 }
@@ -225,6 +226,66 @@ async function removeMembership({ membershipId, expectedLeagueSlug, requestingAc
   return { removed: true, accountId: membership.account_id, leagueSlug: expectedLeagueSlug, teamId: membership.team_id };
 }
 
+// Every account, everywhere, with its full membership list attached —
+// backs the Admin Panel's account list, which (unlike ManageUsers.jsx) is
+// deliberately not scoped to one league.
+async function getAllAccountsWithMemberships() {
+  const [accountsResult, membershipsResult] = await Promise.all([
+    sessionPool.query("SELECT * FROM accounts ORDER BY id"),
+    sessionPool.query("SELECT * FROM account_memberships ORDER BY league_slug"),
+  ]);
+  const membershipsByAccount = new Map();
+  for (const row of membershipsResult.rows) {
+    const list = membershipsByAccount.get(row.account_id) || [];
+    // Includes the membership row's own id (unlike mapMembershipRow's usual
+    // shape) — the Admin Panel's "Remove" action needs it for
+    // removeMembershipByIdAsAdmin, the same way getMembersOfLeague already
+    // does for the per-league commissioner view.
+    list.push({ id: row.id, ...mapMembershipRow(row) });
+    membershipsByAccount.set(row.account_id, list);
+  }
+  return accountsResult.rows.map((row) => ({
+    ...mapAccountRow(row),
+    memberships: membershipsByAccount.get(row.id) || [],
+  }));
+}
+
+// scripts/setAdmin.js only — no route calls this, granting admin is
+// bootstrap-only (see the is_admin column's comment in globalSchema.sql).
+async function setAdminFlag(accountId, isAdmin) {
+  const { rows } = await sessionPool.query("UPDATE accounts SET is_admin = $1 WHERE id = $2 RETURNING *", [
+    isAdmin,
+    accountId,
+  ]);
+  if (rows.length === 0) {
+    throw notFound("Account not found");
+  }
+  return mapAccountRow(rows[0]);
+}
+
+// The admin-only equivalent of removeMembership — takes just the
+// membership id, no league-match or self-removal check (an admin's
+// authority isn't scoped to one league the way a commissioner's is, and
+// removing their own membership to some other league doesn't strand
+// anything the way removing a commissioner's own active league would). The
+// last-commissioner guard still applies — that's a safety rail worth
+// keeping regardless of who's making the change.
+async function removeMembershipByIdAsAdmin(membershipId) {
+  const { rows } = await sessionPool.query("SELECT * FROM account_memberships WHERE id = $1", [membershipId]);
+  if (rows.length === 0) {
+    throw notFound("Membership not found");
+  }
+  const membership = rows[0];
+  if (membership.role === "commissioner") {
+    const count = await countCommissionersInLeague(membership.league_slug);
+    if (count <= 1) {
+      throw badRequest("Can't remove the only commissioner in this league — make another account commissioner first");
+    }
+  }
+  await sessionPool.query("DELETE FROM account_memberships WHERE id = $1", [membershipId]);
+  return { removed: true, accountId: membership.account_id, leagueSlug: membership.league_slug, teamId: membership.team_id };
+}
+
 // Sets a brand new password directly — for a developer running
 // scripts/resetPassword.js when someone forgets theirs. No "old password"
 // check (that's the whole point: they've forgotten it), so this only ever
@@ -272,9 +333,12 @@ module.exports = {
   getMemberships,
   getMembership,
   getMembersOfLeague,
+  getAllAccountsWithMemberships,
   countMembersOnTeam,
   addMembership,
   removeMembership,
+  removeMembershipByIdAsAdmin,
   resetPassword,
   deleteAccountEntirely,
+  setAdminFlag,
 };
