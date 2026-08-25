@@ -5,6 +5,7 @@ import { LeaguePhaseProvider, useLeaguePhase } from "./LeaguePhaseContext";
 import { NotificationsProvider, useNotifications } from "./NotificationsContext";
 import { PHASE_LABELS } from "./phaseLabels";
 import Login from "./components/Login";
+import LeagueSelect from "./components/LeagueSelect";
 import AccountMenu from "./components/AccountMenu";
 import PhaseBanner from "./components/PhaseBanner";
 import PhaseLock from "./components/PhaseLock";
@@ -235,8 +236,18 @@ function AuthGate() {
     return <Login />;
   }
 
+  if (user.needsLeagueSelection) {
+    return <LeagueSelect account={user.account} memberships={user.memberships} />;
+  }
+
   return (
-    <MyTeamProvider>
+    // Keyed by league slug so switching leagues in-app (AccountMenu) forces
+    // a clean remount — MyTeamContext/LeaguePhaseContext/NotificationsContext
+    // all fetch once on mount with no manual refetch, so without this a
+    // switch would silently keep showing the previous league's data. Also
+    // resets AppShell's own nav state, which is desirable when the league
+    // underneath it changes.
+    <MyTeamProvider key={user.league.slug}>
       <LeaguePhaseProvider>
         <NotificationsProvider>
           <AppShell />

@@ -9,6 +9,7 @@ const { initDatabase } = require("./seed");
 const { sessionPool, runWithLeague, LEAGUE_SLUGS, LEAGUES } = require("./db");
 const { SKATER_ATTRS, GOALIE_ATTRS } = require("./data");
 const push = require("./push");
+const accounts = require("./accounts");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -138,26 +139,85 @@ app.get("/api/leagues", (req, res) => {
   res.json(LEAGUE_SLUGS.map((slug) => ({ slug, label: LEAGUES[slug].label })));
 });
 
-// No public signup — accounts are created invite-only via
-// server/scripts/createUser.js (run once per league; the same username can
-// exist independently in each). These four routes are the only ones that
-// work without a session already established.
+// Attaches the league label to a membership row for client display, and
+// filters out any membership pointing at a league slug that no longer
+// exists in LEAGUES (shouldn't happen outside of local config changes, but
+// cheap to guard rather than send the client a membership it can't render).
+function describeMemberships(memberships) {
+  return memberships
+    .filter((m) => LEAGUE_SLUGS.includes(m.leagueSlug))
+    .map((m) => ({ ...m, leagueLabel: LEAGUES[m.leagueSlug].label }));
+}
+
+// The one response shape every "fully logged in" auth response uses (the
+// single-membership login path, /api/auth/select-league, and /api/auth/me)
+// — always carries the full membership list too, not just the active one,
+// so AccountMenu.jsx can render a league switcher without a second request.
+function buildUserResponse(account, activeMembership, allMemberships) {
+  return {
+    ...account,
+    teamId: activeMembership.teamId,
+    role: activeMembership.role,
+    league: { slug: activeMembership.leagueSlug, label: LEAGUES[activeMembership.leagueSlug].label },
+    memberships: describeMemberships(allMemberships),
+  };
+}
+
+// No public signup — accounts are created invite-only via ManageUsers.jsx
+// (or server/scripts/createUser.js) by a commissioner. An account can now
+// belong to more than one league (see accounts.js), so login no longer
+// asks which league up front — it's derived from the account's own
+// memberships instead. These routes are the only ones that work without a
+// session already established.
 app.post(
   "/api/auth/login",
   asyncRoute(async (req, res) => {
-    const { league, username, password } = req.body;
-    if (!LEAGUE_SLUGS.includes(league)) {
-      return res.status(400).json({ error: "Unknown league" });
-    }
-    const user = await runWithLeague(league, () => store.verifyLogin(username, password));
-    if (!user) {
+    const { username, password } = req.body;
+    const account = await accounts.verifyAccountLogin(username, password);
+    if (!account) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
-    req.session.userId = user.id;
-    req.session.teamId = user.teamId;
-    req.session.leagueSlug = league;
-    req.session.role = user.role;
-    res.json({ ...user, league: { slug: league, label: LEAGUES[league].label } });
+    const memberships = await accounts.getMemberships(account.id);
+    if (memberships.length === 0) {
+      return res.status(403).json({ error: "This account isn't part of any league yet — ask your commissioner to add you." });
+    }
+    if (memberships.length > 1) {
+      // Credentials are already fully verified at this point — all that's
+      // pending is which of the account's leagues to open. accountId alone
+      // isn't enough to pass requireAuth (which also needs leagueSlug), so
+      // nothing protected is reachable until /api/auth/select-league below
+      // finishes the job.
+      req.session.accountId = account.id;
+      return res.json({ needsLeagueSelection: true, account, memberships: describeMemberships(memberships) });
+    }
+    const [membership] = memberships;
+    req.session.accountId = account.id;
+    req.session.teamId = membership.teamId;
+    req.session.leagueSlug = membership.leagueSlug;
+    req.session.role = membership.role;
+    res.json(buildUserResponse(account, membership, memberships));
+  })
+);
+
+// Finishes a login that had more than one membership to choose from, or
+// switches an already-fully-logged-in session to a different one of the
+// account's leagues — same endpoint either way, since both are just "pick
+// which membership is active now."
+app.post(
+  "/api/auth/select-league",
+  requireAccount,
+  asyncRoute(async (req, res) => {
+    const { leagueSlug } = req.body;
+    const membership = await accounts.getMembership(req.session.accountId, leagueSlug);
+    if (!membership) {
+      return res.status(403).json({ error: "This account isn't a member of that league" });
+    }
+    const account = await accounts.getAccountById(req.session.accountId);
+    const memberships = await accounts.getMemberships(req.session.accountId);
+    req.session.teamId = membership.teamId;
+    req.session.leagueSlug = membership.leagueSlug;
+    req.session.role = membership.role;
+    res.json(buildUserResponse(account, membership, memberships));
   })
 );
 
@@ -171,15 +231,29 @@ app.post("/api/auth/logout", (req, res) => {
 app.get(
   "/api/auth/me",
   asyncRoute(async (req, res) => {
-    if (!req.session.userId || !req.session.leagueSlug) {
+    if (!req.session.accountId) {
       return res.status(401).json({ error: "Not logged in" });
     }
-    const user = await store.getUserById(req.session.userId);
-    if (!user) {
+    const account = await accounts.getAccountById(req.session.accountId);
+    if (!account) {
       // The account was deleted out from under an existing session.
       return req.session.destroy(() => res.status(401).json({ error: "Not logged in" }));
     }
-    res.json({ ...user, league: { slug: req.session.leagueSlug, label: LEAGUES[req.session.leagueSlug].label } });
+    const memberships = await accounts.getMemberships(account.id);
+    if (!req.session.leagueSlug) {
+      // Mid-selection (e.g. the tab was closed/refreshed right after a
+      // multi-league login, before a league was picked) — credentials are
+      // still valid, so this isn't a 401, just the same "pick one" prompt
+      // login itself would have returned.
+      return res.json({ needsLeagueSelection: true, account, memberships: describeMemberships(memberships) });
+    }
+    const membership = memberships.find((m) => m.leagueSlug === req.session.leagueSlug);
+    if (!membership) {
+      // The membership this session was pinned to got removed elsewhere
+      // (a commissioner action) since this session last checked in.
+      return req.session.destroy(() => res.status(401).json({ error: "Not logged in" }));
+    }
+    res.json(buildUserResponse(account, membership, memberships));
   })
 );
 
@@ -201,11 +275,25 @@ if (isProduction) {
   });
 }
 
-// Everything below this line requires a logged-in session (with a league
-// chosen — the two are set together at login, so missing either means the
-// session is incomplete/stale).
+// Guards /api/auth/select-league only — credentials are already fully
+// verified once accountId is set (see /api/auth/login), all that's
+// pending is which league to open, so this is deliberately lighter than
+// requireAuth below (no leagueSlug requirement).
+function requireAccount(req, res, next) {
+  if (!req.session.accountId) {
+    return res.status(401).json({ error: "Not logged in" });
+  }
+  next();
+}
+
+// Everything below this line requires a logged-in session with a league
+// actively selected — a multi-league account that's logged in but hasn't
+// finished picking a league yet (accountId set, leagueSlug not) still 401s
+// here, same as a fully logged-out request; the client is expected to
+// resolve that via /api/auth/me's needsLeagueSelection response instead of
+// ever hitting one of these routes in that state.
 function requireAuth(req, res, next) {
-  if (!req.session.userId || !req.session.leagueSlug) {
+  if (!req.session.accountId || !req.session.leagueSlug) {
     return res.status(401).json({ error: "Not logged in" });
   }
   next();
@@ -250,7 +338,7 @@ app.get(
 app.post(
   "/api/push/subscribe",
   asyncRoute(async (req, res) => {
-    await push.saveSubscription(req.session.userId, req.body);
+    await push.saveSubscription(req.session.accountId, req.body);
     res.json({ subscribed: true });
   })
 );
@@ -487,39 +575,83 @@ app.get(
 app.get(
   "/api/users",
   asyncRoute(async (req, res) => {
-    res.json(await store.getUsers());
+    res.json(await accounts.getMembersOfLeague(req.session.leagueSlug));
   })
 );
 
-// Creates a new login account in this league. The only way to do this used
-// to be the standalone createUser.js CLI script (still there, still works,
-// but requires shell access + knowing which LEAGUE env var to set) — this
-// is the same store.createUser call, just reachable from the Commissioner
-// tab so adding a GM or a second commissioner doesn't need a terminal.
+// Lets the commissioner's "add account" form check, before submitting,
+// whether a username already has an account somewhere (any league) — if
+// so the form just needs a team/role to add them to this league, not a
+// whole new password. Commissioner-only since finding out a username
+// exists (and its display name) is a small cross-league disclosure that
+// didn't exist when every league's accounts were fully isolated.
+app.get(
+  "/api/commissioner/accounts/:username",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    const account = await accounts.findAccountByUsername(req.params.username);
+    if (!account) return res.status(404).json({ error: "No account with that username" });
+    res.json(account);
+  })
+);
+
+// Adds someone to this league — either a brand-new account (username +
+// password + displayName, all required) or an existing account found via
+// the lookup above (pass its accountId instead, no password needed). team
+// assignment flips that team human-controlled the moment someone's
+// assigned to it, same as before; teamId is validated against this
+// league's own teams here since account_memberships.team_id can't be a
+// real foreign key (teams live in a separate physical database per
+// league).
 app.post(
   "/api/commissioner/users",
   requireCommissioner,
   asyncRoute(async (req, res) => {
-    const { username, password, displayName, teamId, role } = req.body;
-    const user = await store.createUser({
-      username,
-      password,
-      displayName,
-      teamId: teamId ? Number(teamId) : null,
+    const { accountId, username, password, displayName, teamId, role } = req.body;
+    const resolvedTeamId = teamId ? Number(teamId) : null;
+    if (resolvedTeamId != null) {
+      const teams = await store.getTeams();
+      if (!teams.some((t) => t.id === resolvedTeamId)) {
+        return res.status(400).json({ error: "Unknown team" });
+      }
+    }
+    const account = accountId
+      ? await accounts.getAccountById(Number(accountId))
+      : await accounts.createAccount({ username, password, displayName });
+    if (!account) return res.status(404).json({ error: "Account not found" });
+    const membership = await accounts.addMembership({
+      accountId: account.id,
+      leagueSlug: req.session.leagueSlug,
+      teamId: resolvedTeamId,
       role,
     });
-    res.status(201).json(user);
+    if (resolvedTeamId != null) {
+      await store.setTeamHumanControlled(resolvedTeamId, true);
+    }
+    res.status(201).json({ ...account, teamId: membership.teamId, role: membership.role });
   })
 );
 
-// Removes a login account. store.deleteUser refuses to delete the caller's
-// own account (would lock the commissioner out mid-session) or the last
-// remaining commissioner account (nobody left to manage the league).
+// Removes someone from THIS league only — their account (and any other
+// league's membership) is untouched. accounts.removeMembership refuses to
+// remove the caller's own membership (would lock the commissioner out
+// mid-session) or the last remaining commissioner in this league.
 app.delete(
   "/api/commissioner/users/:id",
   requireCommissioner,
   asyncRoute(async (req, res) => {
-    res.json(await store.deleteUser(Number(req.params.id), { requestingUserId: req.session.userId }));
+    const result = await accounts.removeMembership({
+      membershipId: Number(req.params.id),
+      expectedLeagueSlug: req.session.leagueSlug,
+      requestingAccountId: req.session.accountId,
+    });
+    if (result.teamId != null) {
+      const remaining = await accounts.countMembersOnTeam(req.session.leagueSlug, result.teamId);
+      if (remaining === 0) {
+        await store.setTeamHumanControlled(result.teamId, false);
+      }
+    }
+    res.json(result);
   })
 );
 
@@ -1041,6 +1173,11 @@ app.use((err, req, res, next) => {
 });
 
 async function start() {
+  // Global login identity (accounts/account_memberships/push_subscriptions)
+  // lives in sessionPool's database, not one of the per-league ones below —
+  // bootstrapped once, not per-league.
+  await accounts.ensureGlobalSchema();
+
   // Bootstraps every league's database in turn (schema migrations are
   // idempotent — see schema.sql — so this is safe to run on every restart,
   // not just the first one). Each already has data cloned from the

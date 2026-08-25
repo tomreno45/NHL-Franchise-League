@@ -3,8 +3,18 @@
 // not app business logic. store.js/server.js call into this at the points
 // that should actually notify someone; this module doesn't decide when
 // that is.
+//
+// Talks to sessionPool (the shared/global database), not the league-routed
+// pool from db.js — push_subscriptions is keyed by accountId now (global
+// login identity, see accounts.js), not by a per-league users.id. A send is
+// still scoped to one league exactly like before (an account's push
+// subscription fires only for events in whichever league is currently
+// active), via a join through account_memberships filtered by
+// getActiveLeagueSlug() — the same AsyncLocalStorage lookup db.js's
+// activePool() already relies on, just exposed directly so store.js's
+// trade-offer/phase-advance call sites don't need to change at all.
 const webpush = require("web-push");
-const { pool } = require("./db");
+const { sessionPool, getActiveLeagueSlug } = require("./db");
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
@@ -19,17 +29,17 @@ if (configured) {
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 }
 
-async function saveSubscription(userId, subscription) {
-  await pool.query(
-    `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
+async function saveSubscription(accountId, subscription) {
+  await sessionPool.query(
+    `INSERT INTO push_subscriptions (account_id, endpoint, p256dh, auth)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT (endpoint) DO UPDATE SET user_id = EXCLUDED.user_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth`,
-    [userId, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth]
+     ON CONFLICT (endpoint) DO UPDATE SET account_id = EXCLUDED.account_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth`,
+    [accountId, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth]
   );
 }
 
 async function removeSubscription(endpoint) {
-  await pool.query("DELETE FROM push_subscriptions WHERE endpoint = $1", [endpoint]);
+  await sessionPool.query("DELETE FROM push_subscriptions WHERE endpoint = $1", [endpoint]);
 }
 
 // Fires one push per subscription row and swallows per-row failures — a
@@ -57,21 +67,37 @@ async function sendToRows(rows, payload) {
   );
 }
 
+// "All users" has always actually meant "everyone subscribed in the
+// currently active league" (it read from that league's own
+// push_subscriptions table before this table became shared) — preserved
+// exactly via the league_slug filter, not broadened into a genuine
+// all-leagues broadcast.
 async function sendToAllUsers(payload) {
   if (!configured) return;
-  const { rows } = await pool.query("SELECT endpoint, p256dh, auth FROM push_subscriptions");
+  const leagueSlug = getActiveLeagueSlug();
+  if (!leagueSlug) return;
+  const { rows } = await sessionPool.query(
+    `SELECT s.endpoint, s.p256dh, s.auth FROM push_subscriptions s
+     JOIN account_memberships m ON m.account_id = s.account_id
+     WHERE m.league_slug = $1`,
+    [leagueSlug]
+  );
   await sendToRows(rows, payload);
 }
 
-// Every login currently assigned to teamId — same "a team's account(s)"
-// join every other team-scoped query in this app already does via
-// users.team_id, just read-only here.
+// Every login currently assigned to teamId, scoped to the currently active
+// league — same "a team's account(s)" join every other team-scoped query in
+// this app already does, just against the global membership table instead
+// of a per-league users.team_id column.
 async function sendToTeam(teamId, payload) {
   if (!configured) return;
-  const { rows } = await pool.query(
+  const leagueSlug = getActiveLeagueSlug();
+  if (!leagueSlug) return;
+  const { rows } = await sessionPool.query(
     `SELECT s.endpoint, s.p256dh, s.auth FROM push_subscriptions s
-     JOIN users u ON u.id = s.user_id WHERE u.team_id = $1`,
-    [teamId]
+     JOIN account_memberships m ON m.account_id = s.account_id
+     WHERE m.league_slug = $1 AND m.team_id = $2`,
+    [leagueSlug, teamId]
   );
   await sendToRows(rows, payload);
 }

@@ -15,6 +15,12 @@ export default function ManageUsers({ teams }) {
   const [creating, setCreating] = useState(false);
   const [createMessage, setCreateMessage] = useState(null);
 
+  // null = haven't checked yet; "checking"; { found: true, account }; or
+  // { found: false } — drives whether the form below asks for a password
+  // (brand new account) or just a team/role (attaching an account that
+  // already exists, in this or another league).
+  const [lookup, setLookup] = useState(null);
+
   const [confirmingId, setConfirmingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -51,21 +57,50 @@ export default function ManageUsers({ teams }) {
 
   const setField = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
+  const handleUsernameBlur = async () => {
+    const username = form.username.trim();
+    if (!username) {
+      setLookup(null);
+      return;
+    }
+    setLookup("checking");
+    try {
+      const account = await api.findAccountByUsername(username);
+      setLookup({ found: true, account });
+    } catch {
+      setLookup({ found: false });
+    }
+  };
+
+  const handleUsernameChange = (e) => {
+    setForm((f) => ({ ...f, username: e.target.value }));
+    setLookup(null); // stale until the next blur re-checks it
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCreating(true);
     setCreateMessage(null);
     setError(null);
     try {
-      const user = await api.createUser({
-        username: form.username,
-        password: form.password,
-        displayName: form.displayName,
-        teamId: form.teamId || null,
-        role: form.role,
-      });
-      setCreateMessage(`Created "${user.username}" — share the username and password you just set with them directly.`);
+      const foundAccount = lookup && lookup.found ? lookup.account : null;
+      const payload = foundAccount
+        ? { accountId: foundAccount.id, teamId: form.teamId || null, role: form.role }
+        : {
+            username: form.username,
+            password: form.password,
+            displayName: form.displayName,
+            teamId: form.teamId || null,
+            role: form.role,
+          };
+      const user = await api.createUser(payload);
+      setCreateMessage(
+        foundAccount
+          ? `Added "${user.username}" to this league.`
+          : `Created "${user.username}" — share the username and password you just set with them directly.`
+      );
       setForm(emptyForm);
+      setLookup(null);
       reloadUsers();
     } catch (err) {
       setError(err.message);
@@ -74,12 +109,15 @@ export default function ManageUsers({ teams }) {
     }
   };
 
+  const isExisting = lookup && lookup.found;
+
   return (
     <div className="rounded-lg bg-slate-900 p-5">
       <h3 className="mb-1 text-base font-semibold text-slate-100">Manage Users</h3>
       <p className="mb-4 text-sm text-slate-500">
-        Accounts for this league only — Test/Development/Production each have their own. No email or self-serve
-        signup; you set the password directly and pass it along to whoever the account is for.
+        Type a username below — if it already has an account (in this league or another), you'll just pick a team and
+        role to add them here. Otherwise you'll set a password for a brand new account. No email or self-serve
+        signup either way; you pass the password along to whoever the account is for.
       </p>
 
       {users && users.length > 0 && (
@@ -96,7 +134,7 @@ export default function ManageUsers({ teams }) {
             </thead>
             <tbody>
               {users.map((u, i) => {
-                const isSelf = u.id === currentUser.id;
+                const isSelf = u.accountId === currentUser.id;
                 return (
                   <tr key={u.id} className={i % 2 === 0 ? "bg-slate-900" : "bg-slate-900/50"}>
                     <td className="px-3 py-2 text-slate-100">
@@ -117,7 +155,7 @@ export default function ManageUsers({ teams }) {
                     <td className="px-3 py-2 text-right">
                       {confirmingId === u.id ? (
                         <span className="inline-flex items-center gap-2">
-                          <span className="text-xs text-slate-400">Remove?</span>
+                          <span className="text-xs text-slate-400">Remove from league?</span>
                           <button
                             type="button"
                             onClick={() => handleConfirmDelete(u)}
@@ -140,7 +178,7 @@ export default function ManageUsers({ teams }) {
                           type="button"
                           onClick={() => setConfirmingId(u.id)}
                           disabled={isSelf}
-                          title={isSelf ? "You can't remove the account you're logged in as" : undefined}
+                          title={isSelf ? "You can't remove yourself from the league you're currently signed into" : "Removes them from this league only — their account and any other leagues are untouched"}
                           className="rounded-md bg-red-950 px-2.5 py-1 text-xs font-medium text-red-300 hover:bg-red-900 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           Remove
@@ -165,36 +203,47 @@ export default function ManageUsers({ teams }) {
             type="text"
             required
             value={form.username}
-            onChange={setField("username")}
+            onChange={handleUsernameChange}
+            onBlur={handleUsernameBlur}
             className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100"
           />
+          {lookup === "checking" && <p className="mt-1 text-xs text-slate-500">Checking…</p>}
+          {isExisting && (
+            <p className="mt-1 text-xs text-emerald-400">
+              Found "{lookup.account.displayName}" — pick a team and role below to add them to this league.
+            </p>
+          )}
         </div>
-        <div>
-          <label className="mb-1 block text-xs text-slate-400" htmlFor="new-user-password">
-            Password
-          </label>
-          <input
-            id="new-user-password"
-            type="text"
-            required
-            value={form.password}
-            onChange={setField("password")}
-            className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-slate-400" htmlFor="new-user-display-name">
-            Display Name
-          </label>
-          <input
-            id="new-user-display-name"
-            type="text"
-            required
-            value={form.displayName}
-            onChange={setField("displayName")}
-            className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100"
-          />
-        </div>
+        {!isExisting && (
+          <div>
+            <label className="mb-1 block text-xs text-slate-400" htmlFor="new-user-password">
+              Password
+            </label>
+            <input
+              id="new-user-password"
+              type="text"
+              required
+              value={form.password}
+              onChange={setField("password")}
+              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100"
+            />
+          </div>
+        )}
+        {!isExisting && (
+          <div>
+            <label className="mb-1 block text-xs text-slate-400" htmlFor="new-user-display-name">
+              Display Name
+            </label>
+            <input
+              id="new-user-display-name"
+              type="text"
+              required
+              value={form.displayName}
+              onChange={setField("displayName")}
+              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100"
+            />
+          </div>
+        )}
         <div>
           <label className="mb-1 block text-xs text-slate-400" htmlFor="new-user-team">
             Team
@@ -207,9 +256,9 @@ export default function ManageUsers({ teams }) {
           >
             <option value="">No team (commissioner-only account)</option>
             {/* Every team, including CPU-controlled ones — assigning a login
-                to a CPU team flips it human-controlled (see store.js's
-                createUser), so picking one here is exactly how you hand a
-                new GM control of it. */}
+                to a CPU team flips it human-controlled (see
+                store.setTeamHumanControlled), so picking one here is
+                exactly how you hand a new GM control of it. */}
             {teams.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.city} {t.name}
@@ -235,10 +284,10 @@ export default function ManageUsers({ teams }) {
         <div className="flex items-end">
           <button
             type="submit"
-            disabled={creating}
+            disabled={creating || lookup === "checking"}
             className="rounded-md bg-sky-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
           >
-            {creating ? "Creating…" : "Create Account"}
+            {creating ? "Saving…" : isExisting ? "Add to League" : "Create Account"}
           </button>
         </div>
       </form>

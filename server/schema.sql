@@ -313,24 +313,13 @@ CREATE TABLE IF NOT EXISTS users (
 -- etc.) is already done — no DB-level CHECK constraint.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
 
--- One browser's Web Push subscription for one user account — a GM who logs
--- in on their phone and their laptop just gets two rows, both notified. Not
--- scoped to a team (unlike notifications above) since a subscription
--- belongs to the login, not the roster it happens to control today; see
--- push.js for how team-targeted sends (e.g. a trade offer) join through
--- users.team_id instead of storing it here redundantly. endpoint is the
--- push service's own per-device URL, so it's globally unique — re-
--- subscribing the same browser (after clearing site data, e.g.) is a clean
--- upsert rather than a duplicate row.
-CREATE TABLE IF NOT EXISTS push_subscriptions (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  endpoint TEXT NOT NULL UNIQUE,
-  p256dh TEXT NOT NULL,
-  auth TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
+-- push_subscriptions used to live here, FK'd to this league's own users.id.
+-- Relocated to globalSchema.sql (FK'd to accounts.id instead) now that
+-- login identity is global rather than per-league — see accounts.js. Any
+-- pre-existing push_subscriptions rows in this per-league database are
+-- inert leftovers (never dropped, matching this file's convention of never
+-- deleting superseded tables) and were carried forward into the new table
+-- by scripts/migrateToGlobalAccounts.js.
 
 CREATE INDEX IF NOT EXISTS idx_notifications_team ON notifications(team_id, read);
 CREATE INDEX IF NOT EXISTS idx_players_team_id ON players(team_id);

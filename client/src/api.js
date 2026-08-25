@@ -29,7 +29,8 @@ async function send(method, path, body) {
 
 export const api = {
   getLeagues: () => get("/leagues"),
-  login: (league, username, password) => send("POST", "/auth/login", { league, username, password }),
+  login: (username, password) => send("POST", "/auth/login", { username, password }),
+  selectLeague: (leagueSlug) => send("POST", "/auth/select-league", { leagueSlug }),
   logout: () => send("POST", "/auth/logout", {}),
   getMe: () => get("/auth/me"),
   getPushPublicKey: () => get("/push/public-key"),
@@ -76,6 +77,7 @@ export const api = {
   getRosterChanges: () => get("/commissioner/roster-changes"),
   getLeagueWidePendingMoves: () => get("/commissioner/pending-moves"),
   getUsers: () => get("/users"),
+  findAccountByUsername: (username) => get(`/commissioner/accounts/${encodeURIComponent(username)}`),
   createUser: (payload) => send("POST", "/commissioner/users", payload),
   deleteUser: (id) => send("DELETE", `/commissioner/users/${id}`, {}),
   setPlayoffChampion: (teamId) => send("POST", "/playoffs/champion", { teamId }),

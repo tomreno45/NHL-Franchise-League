@@ -89,13 +89,33 @@ async function withTransaction(fn) {
   }
 }
 
-// A separate, always-on pool for express-session (connect-pg-simple). The
-// session has to exist before a league is even chosen — the login form's
-// league picker is literally what gets written into it — so it can't live
-// inside one of the per-league databases above. Points at the original
-// hockey_franchise database, which this app used single-tenant before the
-// Test/Development/Production split; its old teams/players/etc. tables are
-// just unused now, left in place rather than dropped.
+// A separate, always-on pool for express-session (connect-pg-simple) and,
+// now, for the global accounts/account_memberships/push_subscriptions
+// tables (see accounts.js) — anything that has to exist regardless of
+// which league is chosen, or that spans more than one league, lives here
+// rather than inside one of the per-league databases above. Points at the
+// original hockey_franchise database, which this app used single-tenant
+// before the Test/Development/Production split; its old teams/players/etc.
+// tables are just unused now, left in place rather than dropped.
 const sessionPool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-module.exports = { pool, query, withTransaction, runWithLeague, LEAGUE_SLUGS, LEAGUES, sessionPool };
+// Which league (if any) is active for the current async context — same
+// underlying AsyncLocalStorage lookup activePool() uses, exposed directly
+// for accounts.js's push-notification functions, which need to know "the
+// current league" to scope a send (via account_memberships) without every
+// store.js call site that triggers a push having to thread a leagueSlug
+// parameter through itself.
+function getActiveLeagueSlug() {
+  return leagueContext.getStore();
+}
+
+module.exports = {
+  pool,
+  query,
+  withTransaction,
+  runWithLeague,
+  getActiveLeagueSlug,
+  LEAGUE_SLUGS,
+  LEAGUES,
+  sessionPool,
+};

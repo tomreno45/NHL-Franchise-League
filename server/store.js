@@ -2188,13 +2188,16 @@ async function getLeagueTransactions(limit = 200) {
   }));
 }
 
-// --- Users / auth ---
+// --- Users / auth (superseded — see accounts.js) ---
 //
-// Username-based (not email — this is a private friend league, invite-only,
-// not a public signup product). Accounts are created via
-// server/scripts/createUser.js, not a public registration endpoint, until a
-// real login/session flow exists on top of this. password_hash never leaves
-// this module — mapUserRow strips it before any row reaches a route handler.
+// Login identity moved to a global accounts/account_memberships model (see
+// server/accounts.js) so one login can span multiple leagues — server.js's
+// auth and commissioner-user-management routes call into accounts.js now,
+// not the functions below. This whole section (through verifyLogin) is
+// left in place rather than deleted, matching this codebase's convention of
+// never dropping superseded code/tables outright, but nothing in the app
+// calls it anymore; the per-league `users` table it reads still exists too,
+// carried forward as historical data by scripts/migrateToGlobalAccounts.js.
 const BCRYPT_ROUNDS = 10;
 
 const USER_ROLES = ["user", "commissioner"];
@@ -2298,6 +2301,18 @@ async function verifyLogin(username, password) {
   const row = rows[0];
   const matches = await bcrypt.compare(password, row.password_hash);
   return matches ? mapUserRow(row) : null;
+}
+
+// Still very much in use — called from server.js's commissioner
+// user-management routes after adding/removing an account_memberships row
+// (see accounts.js), since that table lives in the global database and
+// can't update this league's own teams table itself. A CPU team becomes
+// human-controlled the moment someone's assigned to it, and reverts back
+// once nobody's left assigned, same behavior the old per-league
+// createUser/deleteUser had, just split across two databases now instead
+// of one transaction.
+async function setTeamHumanControlled(teamId, isHuman) {
+  await pool.query("UPDATE teams SET is_human_controlled = $1 WHERE id = $2", [isHuman, teamId]);
 }
 
 // --- Free agency ---
@@ -4304,6 +4319,7 @@ module.exports = {
   getUsers,
   getUserById,
   deleteUser,
+  setTeamHumanControlled,
   verifyLogin,
   getGoalieLeaders,
   getScorers,
