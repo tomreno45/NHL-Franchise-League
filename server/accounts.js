@@ -225,6 +225,43 @@ async function removeMembership({ membershipId, expectedLeagueSlug, requestingAc
   return { removed: true, accountId: membership.account_id, leagueSlug: expectedLeagueSlug, teamId: membership.team_id };
 }
 
+// Sets a brand new password directly — for a developer running
+// scripts/resetPassword.js when someone forgets theirs. No "old password"
+// check (that's the whole point: they've forgotten it), so this only ever
+// runs from a trusted, out-of-band channel (shell access to the server),
+// never exposed over HTTP to commissioners — a commissioner in one league
+// shouldn't be able to reset the password on an account that might belong
+// to leagues they have no authority over.
+async function resetPassword(accountId, newPassword) {
+  if (!newPassword) {
+    throw badRequest("newPassword is required");
+  }
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  const { rows } = await sessionPool.query(
+    "UPDATE accounts SET password_hash = $1 WHERE id = $2 RETURNING *",
+    [passwordHash, accountId]
+  );
+  if (rows.length === 0) {
+    throw notFound("Account not found");
+  }
+  return mapAccountRow(rows[0]);
+}
+
+// Wipes the account entirely — every membership in every league goes with
+// it (ON DELETE CASCADE), same for any push subscriptions. Irreversible:
+// the username becomes available again and nothing is left to "add back"
+// the way a plain removeMembership leaves the account intact for later.
+// Same trust boundary as resetPassword — developer/shell-access only, never
+// an HTTP route, since a single commissioner's league-scoped authority
+// shouldn't extend to erasing someone's access everywhere at once.
+async function deleteAccountEntirely(accountId) {
+  const { rows } = await sessionPool.query("DELETE FROM accounts WHERE id = $1 RETURNING *", [accountId]);
+  if (rows.length === 0) {
+    throw notFound("Account not found");
+  }
+  return mapAccountRow(rows[0]);
+}
+
 module.exports = {
   ensureGlobalSchema,
   withGlobalTransaction,
@@ -238,4 +275,6 @@ module.exports = {
   countMembersOnTeam,
   addMembership,
   removeMembership,
+  resetPassword,
+  deleteAccountEntirely,
 };
