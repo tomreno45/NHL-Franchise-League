@@ -3809,10 +3809,20 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
 // Trade Center that round, rather than needing a precise "entering a new
 // round" hook the phase-advance machinery doesn't otherwise have.
 
-const CPU_TRADE_OFFER_CHANCE = 0.35; // per CPU team, per human team, per round
+const CPU_TRADE_OFFER_CHANCE = 0.35; // per CPU team, per human team, per round, once that team's offer slots are still open
 // How the CPU's offered package compares to the target's value — a random
 // spread so offers aren't uniformly lowball or uniformly generous.
 const CPU_TRADE_VALUE_RATIO_RANGE = [0.75, 1.3];
+// Total offers a human team sees in one round, independent of how many CPU
+// teams are in the league — the old scheme rolled CPU_TRADE_OFFER_CHANCE
+// once per CPU team per human team, so a 20+-team league could flood a
+// human's Trade Center with 5-10 offers at once. Capped here instead of
+// scaled by league size.
+const CPU_TRADE_OFFERS_PER_HUMAN_TEAM_RANGE = [1, 3];
+
+function randomIntInRange([min, max]) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
 
 async function generateCpuTradeOffers(seasonNumber, round, phase) {
   const [teams, allPlayers, allPicks] = await Promise.all([getTeams(), getPlayers(), getDraftPicks()]);
@@ -3823,7 +3833,14 @@ async function generateCpuTradeOffers(seasonNumber, round, phase) {
   const needsByTeamId = await computeTeamNeeds();
   const ceiling = getCapCeiling(seasonNumber);
 
-  for (const cpu of cpuTeams) {
+  const offerLimitByHuman = new Map(humanTeams.map((h) => [h.id, randomIntInRange(CPU_TRADE_OFFERS_PER_HUMAN_TEAM_RANGE)]));
+  const offersMadeByHuman = new Map(humanTeams.map((h) => [h.id, 0]));
+
+  // Shuffled so the same (lowest-id) CPU teams don't always get first crack
+  // at a human team's now-limited offer slots.
+  const shuffledCpuTeams = [...cpuTeams].sort(() => Math.random() - 0.5);
+
+  for (const cpu of shuffledCpuTeams) {
     const cpuNeeds = needsByTeamId.get(cpu.id);
     const cpuPlayers = allPlayers.filter((p) => p.teamId === cpu.id);
     const cpuPicks = allPicks.filter((pk) => pk.currentTeam.id === cpu.id);
@@ -3840,6 +3857,7 @@ async function generateCpuTradeOffers(seasonNumber, round, phase) {
     const cpuCapNow = await getTeamCapHit(cpu.id);
 
     for (const human of humanTeams) {
+      if (offersMadeByHuman.get(human.id) >= offerLimitByHuman.get(human.id)) continue;
       if (Math.random() > CPU_TRADE_OFFER_CHANCE) continue;
 
       const humanRoster = allPlayers.filter((p) => p.teamId === human.id);
@@ -3899,6 +3917,7 @@ async function generateCpuTradeOffers(seasonNumber, round, phase) {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
         [seasonNumber, round, phase, cpu.id, human.id, offeredPlayerIds, offeredPickIds, [target.id], []]
       );
+      offersMadeByHuman.set(human.id, offersMadeByHuman.get(human.id) + 1);
     }
   }
 }
