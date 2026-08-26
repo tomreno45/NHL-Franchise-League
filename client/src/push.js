@@ -14,6 +14,22 @@ export function isPushSupported() {
   return "serviceWorker" in navigator && "PushManager" in window;
 }
 
+// iOS only ever delivers Web Push to a page launched from its Home Screen
+// icon in standalone mode (see index.html's apple-mobile-web-app-capable
+// meta tag and manifest.webmanifest) — Notification.requestPermission() and
+// pushManager.subscribe() can both appear to succeed from a plain Safari
+// tab, but Apple's push service silently never delivers to that context.
+// Used to warn instead of showing a toggle that looks like it worked.
+// iPadOS reports as "MacIntel" in the UA string since iPadOS 13, hence the
+// touch-points check alongside the iPhone/iPod UA match.
+export function isIOSDevice() {
+  return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+export function isStandaloneDisplay() {
+  return window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+}
+
 export async function getCurrentSubscription() {
   if (!isPushSupported()) return null;
   const registration = await navigator.serviceWorker.getRegistration();

@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import { useMyTeam } from "../MyTeamContext";
 import { useNotifications } from "../NotificationsContext";
-import { getCurrentSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from "../push";
+import {
+  getCurrentSubscription,
+  isIOSDevice,
+  isPushSupported,
+  isStandaloneDisplay,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from "../push";
 
 function formatTimestamp(iso) {
   return new Date(iso).toLocaleString(undefined, {
@@ -27,6 +34,20 @@ function PushToggle() {
       .then((sub) => setSubscribed(Boolean(sub)))
       .catch(() => {});
   }, []);
+
+  // Checked ahead of isPushSupported() and shown in its place — on iOS this
+  // stays true even when PushManager technically exists, since subscribing
+  // from a plain Safari tab looks like it works (no error, toggle flips to
+  // ON) but never actually delivers anything. Better to explain why up
+  // front than let someone "turn it on" and quietly get nothing.
+  if (isIOSDevice() && !isStandaloneDisplay()) {
+    return (
+      <div className="mb-4 rounded-lg bg-slate-900 px-4 py-3 text-sm text-slate-400">
+        On iPhone/iPad, push notifications only work when this app is opened from its Home Screen icon — not from
+        Safari. Tap Share → Add to Home Screen, then open it from that icon to turn notifications on.
+      </div>
+    );
+  }
 
   if (!isPushSupported()) return null;
 
