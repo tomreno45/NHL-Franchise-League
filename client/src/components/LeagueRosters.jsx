@@ -35,7 +35,7 @@ export default function LeagueRosters() {
           {teams.map((t) => (
             <option key={t.id} value={t.id}>
               {t.city} {t.name}
-              {t.isHumanControlled ? " (Human GM)" : ""}
+              {t.gmDisplayName ? ` (${t.gmDisplayName})` : t.isHumanControlled ? " (Human GM)" : ""}
             </option>
           ))}
         </select>

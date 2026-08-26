@@ -554,7 +554,18 @@ app.get(
 app.get(
   "/api/teams",
   asyncRoute(async (req, res) => {
-    res.json(await store.getTeams());
+    const [teams, members] = await Promise.all([store.getTeams(), accounts.getMembersOfLeague(req.session.leagueSlug)]);
+    // Nothing stops two accounts sharing a team_id (no such uniqueness
+    // constraint — see accounts.js) so this joins every GM assigned to a
+    // team, not just the first, rather than silently dropping a co-GM.
+    const gmNamesByTeam = new Map();
+    for (const m of members) {
+      if (m.teamId == null) continue;
+      const names = gmNamesByTeam.get(m.teamId) || [];
+      names.push(m.displayName);
+      gmNamesByTeam.set(m.teamId, names);
+    }
+    res.json(teams.map((t) => ({ ...t, gmDisplayName: gmNamesByTeam.get(t.id)?.join(" & ") ?? null })));
   })
 );
 

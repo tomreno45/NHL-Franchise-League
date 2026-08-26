@@ -390,7 +390,7 @@ function enrichGame(game, teamsById, leagueDate) {
 }
 
 async function getTeams() {
-  const { rows } = await pool.query("SELECT * FROM teams ORDER BY id");
+  const { rows } = await pool.query("SELECT * FROM teams ORDER BY city, name");
   return rows.map(mapTeamRow);
 }
 
