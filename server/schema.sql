@@ -290,6 +290,15 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- outbid/rejected/fell-through ones without parsing the message text.
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS outcome TEXT NOT NULL DEFAULT 'success';
 
+-- A rejected/declined trade (human decline, or a CPU-targeted proposal that
+-- fell through) is private business between the two teams involved — it
+-- still gets written here so the proposing team sees it in their own
+-- Notifications tab (getNotifications, unaffected by this flag — always
+-- scoped to team_id already), but getLeagueTransactions filters it out of
+-- the public league-wide feed. Defaults true since every other notification
+-- (completed trades, signings, phase advances) is meant to be public.
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS league_visible BOOLEAN NOT NULL DEFAULT true;
+
 -- A login account for one of the human GMs. username (not email — this is a
 -- private friend league, not a public signup product) is the unique handle;
 -- team_id is which team this account is allowed to act as (nullable so a

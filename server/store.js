@@ -2144,8 +2144,13 @@ async function ensureDraftPicksThroughWindow(seasonNumber) {
 // actions) — this is a feed of outcomes, not a log of everything a team
 // did. See MyGM's Notifications tab on the client.
 
-async function createNotification(teamId, message, outcome = "success") {
-  await pool.query("INSERT INTO notifications (team_id, message, outcome) VALUES ($1, $2, $3)", [teamId, message, outcome]);
+async function createNotification(teamId, message, outcome = "success", { leagueVisible = true } = {}) {
+  await pool.query("INSERT INTO notifications (team_id, message, outcome, league_visible) VALUES ($1, $2, $3, $4)", [
+    teamId,
+    message,
+    outcome,
+    leagueVisible,
+  ]);
 }
 
 async function getNotifications(teamId) {
@@ -2171,13 +2176,20 @@ async function markNotificationsRead(teamId) {
 // Every team's notifications merged into one public, league-wide feed —
 // unlike getNotifications (privacy-scoped to one team), this backs the
 // League tab's "Transactions" page and deliberately includes every team's
-// events, both completed moves and failed ones (outbid, rejected offer,
-// trade that fell through), since a real league transactions page shows the
-// whole league's activity, not just your own.
+// events, both completed moves and most failed ones (outbid on a free
+// agent, lost a re-signing bid), since a real league transactions page
+// shows the whole league's activity, not just your own. Rejected/declined/
+// fell-through trades are the exception — those stay league_visible=false
+// (see schema.sql, and every createNotification call tied to a trade
+// rejection), since who offered what to whom and got turned down is
+// private between the two teams, not public league business.
 async function getLeagueTransactions(limit = 200) {
   const [teamsById, { rows }] = await Promise.all([
     getTeamsById(),
-    pool.query("SELECT * FROM notifications ORDER BY created_at DESC, id DESC LIMIT $1", [limit]),
+    pool.query(
+      "SELECT * FROM notifications WHERE league_visible = true ORDER BY created_at DESC, id DESC LIMIT $1",
+      [limit]
+    ),
   ]);
   return rows.map((r) => ({
     id: r.id,
@@ -3423,7 +3435,9 @@ async function respondToHumanTradeOffer({ teamId, offerId, accept }) {
 
   if (!accept) {
     await pool.query("UPDATE human_trade_offers SET status = 'declined' WHERE id = $1", [offerId]);
-    await createNotification(offer.proposing_team_id, `${targetAbbr} declined your trade offer.`);
+    await createNotification(offer.proposing_team_id, `${targetAbbr} declined your trade offer.`, "success", {
+      leagueVisible: false,
+    });
     return { status: "declined" };
   }
 
@@ -3702,7 +3716,8 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
         await createNotification(
           r.proposing_team_id,
           `Your trade proposal to ${targetAbbr} (offered ${describeIds(r.offered_player_ids, r.offered_pick_ids)} for ${describeIds(r.requested_player_ids, r.requested_pick_ids)}) fell through — one of those assets was already gone.`,
-          "failure"
+          "failure",
+          { leagueVisible: false }
         );
         continue;
       }
@@ -3723,7 +3738,8 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
         await createNotification(
           r.proposing_team_id,
           `${targetAbbr} rejected your trade proposal (offered ${describeIds(r.offered_player_ids, r.offered_pick_ids)} for ${describeIds(r.requested_player_ids, r.requested_pick_ids)}) — not enough value for them.`,
-          "failure"
+          "failure",
+          { leagueVisible: false }
         );
         continue;
       }
@@ -3739,7 +3755,8 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
         await createNotification(
           r.proposing_team_id,
           `Your trade proposal to ${targetAbbr} (offered ${describeIds(r.offered_player_ids, r.offered_pick_ids)} for ${describeIds(r.requested_player_ids, r.requested_pick_ids)}) fell through — it would have put a team over the salary cap.`,
-          "failure"
+          "failure",
+          { leagueVisible: false }
         );
         continue;
       }
