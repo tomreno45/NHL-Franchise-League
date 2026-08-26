@@ -4,14 +4,17 @@ import { api } from "./api";
 const AuthContext = createContext(null);
 
 // `user` is `undefined` while the initial /auth/me check is in flight,
-// `null` once confirmed logged-out, `{needsLeagueSelection: true, account,
-// memberships}` once credentials are verified but a multi-league (or
-// admin) account hasn't picked which league to open yet, or the full user
-// object once fully logged in — AppShell in App.jsx branches on all four
-// states. `adminPanelOpen` is separate, client-only UI state (not part of
-// the session) — an admin account can toggle into/out of the Admin Panel
-// at any point after credentials are verified, regardless of which of the
-// above states `user` is in.
+// `null` once confirmed logged-out, `{needsPasswordChange: true, account}`
+// once credentials are verified but the account is carrying a password
+// someone else picked for it (see accounts.resetPassword) and hasn't
+// replaced it yet, `{needsLeagueSelection: true, account, memberships}`
+// once past that but a multi-league (or admin) account still hasn't picked
+// which league to open, or the full user object once fully logged in —
+// AuthGate in App.jsx branches on all five states, checking
+// needsPasswordChange before anything else. `adminPanelOpen` is separate,
+// client-only UI state (not part of the session) — an admin account can
+// toggle into/out of the Admin Panel at any point after credentials are
+// verified, regardless of which of the above states `user` is in.
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined);
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
@@ -27,6 +30,15 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     const result = await api.login(username, password);
+    setUser(result);
+  };
+
+  // Finishes a login that returned needsPasswordChange — the response is
+  // the exact same shape login() itself would return (needsLeagueSelection
+  // or a full user), so setUser here naturally carries the account to
+  // whichever screen comes next.
+  const changePassword = async (newPassword) => {
+    const result = await api.changePassword(newPassword);
     setUser(result);
   };
 
@@ -50,6 +62,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         login,
+        changePassword,
         selectLeague,
         logout,
         refresh,

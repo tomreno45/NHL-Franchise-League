@@ -28,7 +28,9 @@ async function main() {
   }
 
   await accounts.resetPassword(account.id, newPassword);
-  console.log(`Password reset for "${account.username}" (${account.displayName}) — share the new password with them directly.`);
+  console.log(
+    `Password reset for "${account.username}" (${account.displayName}) — share the new password with them directly. They'll be asked to set their own on next sign-in.`
+  );
 }
 
 main()

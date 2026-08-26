@@ -163,6 +163,48 @@ function buildUserResponse(account, activeMembership, allMemberships) {
   };
 }
 
+// Shared by /api/auth/login (once mustChangePassword is cleared) and
+// /api/auth/change-password (right after it's cleared) — both end up
+// needing the exact same "credentials are good, now what" branching, so
+// it's one place instead of two copies drifting apart.
+async function finishLogin(req, account) {
+  req.session.accountId = account.id;
+  // Set once here, regardless of which branch below runs — it's a property
+  // of the login itself, not of which league (if any) ends up active, so it
+  // has to survive /api/auth/select-league and every later request the same
+  // way accountId does.
+  req.session.isAdmin = account.isAdmin;
+
+  const memberships = await accounts.getMemberships(account.id);
+
+  if (account.isAdmin) {
+    // Admins always get an explicit choice, even with exactly one
+    // membership or none at all — they might want the Admin Panel instead
+    // of jumping straight into a league, so this never auto-finalizes the
+    // way a single-membership non-admin login does.
+    return { needsLeagueSelection: true, account, memberships: describeMemberships(memberships) };
+  }
+
+  if (memberships.length === 0) {
+    const err = new Error("This account isn't part of any league yet — ask your commissioner to add you.");
+    err.status = 403;
+    throw err;
+  }
+  if (memberships.length > 1) {
+    // Credentials are already fully verified at this point — all that's
+    // pending is which of the account's leagues to open. accountId alone
+    // isn't enough to pass requireAuth (which also needs leagueSlug), so
+    // nothing protected is reachable until /api/auth/select-league below
+    // finishes the job.
+    return { needsLeagueSelection: true, account, memberships: describeMemberships(memberships) };
+  }
+  const [membership] = memberships;
+  req.session.teamId = membership.teamId;
+  req.session.leagueSlug = membership.leagueSlug;
+  req.session.role = membership.role;
+  return buildUserResponse(account, membership, memberships);
+}
+
 // No public signup — accounts are created invite-only via ManageUsers.jsx
 // (or server/scripts/createUser.js) by a commissioner. An account can now
 // belong to more than one league (see accounts.js), so login no longer
@@ -177,43 +219,33 @@ app.post(
     if (!account) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
-    const memberships = await accounts.getMemberships(account.id);
 
-    // req.session.isAdmin is set here, once, regardless of which branch
-    // below runs — it's a property of the login itself, not of which
-    // league (if any) ends up active, so it has to survive
-    // /api/auth/select-league and every later request the same way
-    // accountId does.
-    if (account.isAdmin) {
-      // Admins always get an explicit choice, even with exactly one
-      // membership or none at all — they might want the Admin Panel
-      // instead of jumping straight into a league, so this never
-      // auto-finalizes the way a single-membership non-admin login does.
+    if (account.mustChangePassword) {
+      // Someone else (an admin) picked this password — hold off on
+      // memberships/isAdmin branching entirely until they've replaced it
+      // with one only they know. accountId alone is enough to reach
+      // /api/auth/change-password below (see requireAccount).
       req.session.accountId = account.id;
-      req.session.isAdmin = true;
-      return res.json({ needsLeagueSelection: true, account, memberships: describeMemberships(memberships) });
+      req.session.isAdmin = account.isAdmin;
+      return res.json({ needsPasswordChange: true, account });
     }
 
-    if (memberships.length === 0) {
-      return res.status(403).json({ error: "This account isn't part of any league yet — ask your commissioner to add you." });
-    }
-    if (memberships.length > 1) {
-      // Credentials are already fully verified at this point — all that's
-      // pending is which of the account's leagues to open. accountId alone
-      // isn't enough to pass requireAuth (which also needs leagueSlug), so
-      // nothing protected is reachable until /api/auth/select-league below
-      // finishes the job.
-      req.session.accountId = account.id;
-      req.session.isAdmin = false;
-      return res.json({ needsLeagueSelection: true, account, memberships: describeMemberships(memberships) });
-    }
-    const [membership] = memberships;
-    req.session.accountId = account.id;
-    req.session.isAdmin = false;
-    req.session.teamId = membership.teamId;
-    req.session.leagueSlug = membership.leagueSlug;
-    req.session.role = membership.role;
-    res.json(buildUserResponse(account, membership, memberships));
+    res.json(await finishLogin(req, account));
+  })
+);
+
+// Finishes a login that was interrupted by mustChangePassword — the account
+// holder sets their own new password (no old-password check: reaching this
+// route already proved they hold the current one, temporary or not), then
+// falls through to the exact same branching a normal login would have done.
+app.post(
+  "/api/auth/change-password",
+  requireAccount,
+  asyncRoute(async (req, res) => {
+    const { newPassword } = req.body;
+    if (!newPassword) return res.status(400).json({ error: "newPassword is required" });
+    const account = await accounts.changePassword(req.session.accountId, newPassword);
+    res.json(await finishLogin(req, account));
   })
 );
 
@@ -256,6 +288,9 @@ app.get(
     if (!account) {
       // The account was deleted out from under an existing session.
       return req.session.destroy(() => res.status(401).json({ error: "Not logged in" }));
+    }
+    if (account.mustChangePassword) {
+      return res.json({ needsPasswordChange: true, account });
     }
     const memberships = await accounts.getMemberships(account.id);
     if (!req.session.leagueSlug) {

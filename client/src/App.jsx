@@ -5,6 +5,7 @@ import { LeaguePhaseProvider, useLeaguePhase } from "./LeaguePhaseContext";
 import { NotificationsProvider, useNotifications } from "./NotificationsContext";
 import { PHASE_LABELS } from "./phaseLabels";
 import Login from "./components/Login";
+import ChangePassword from "./components/ChangePassword";
 import LeagueSelect from "./components/LeagueSelect";
 import AdminPanel from "./components/AdminPanel";
 import AccountMenu from "./components/AccountMenu";
@@ -235,6 +236,13 @@ function AuthGate() {
 
   if (user === null) {
     return <Login />;
+  }
+
+  // Takes priority over everything below, including the Admin Panel — an
+  // account carrying a password someone else picked for it can't do
+  // anything else until it sets its own (see accounts.resetPassword).
+  if (user.needsPasswordChange) {
+    return <ChangePassword account={user.account} />;
   }
 
   // isAdmin lives on `account` while a league hasn't been picked yet, and

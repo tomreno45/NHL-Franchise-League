@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS accounts (
 -- crosses league lines.
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
 
+-- Set whenever someone else (an admin, via resetPassword) picks a new
+-- password on this account's behalf — the account holder didn't choose it,
+-- so the next successful login is interrupted with a forced change instead
+-- of silently letting them keep using a password someone else now knows.
+-- Cleared by accounts.changePassword once they've set their own.
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false;
+
 -- One row per (account, league) — which team (if any) and role that
 -- account has in that specific league. team_id is NOT a real foreign key
 -- (teams live in a different physical database per league, so a

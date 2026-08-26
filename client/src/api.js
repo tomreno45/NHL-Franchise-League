@@ -31,6 +31,7 @@ export const api = {
   getLeagues: () => get("/leagues"),
   login: (username, password) => send("POST", "/auth/login", { username, password }),
   selectLeague: (leagueSlug) => send("POST", "/auth/select-league", { leagueSlug }),
+  changePassword: (newPassword) => send("POST", "/auth/change-password", { newPassword }),
   logout: () => send("POST", "/auth/logout", {}),
   getMe: () => get("/auth/me"),
   getPushPublicKey: () => get("/push/public-key"),

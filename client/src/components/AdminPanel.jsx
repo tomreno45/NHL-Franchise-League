@@ -124,7 +124,7 @@ function AccountRow({ account, leagues, teamsByLeague, onChanged }) {
     setError(null);
     try {
       await api.adminResetPassword(account.id, newPassword);
-      setResetMessage("Password reset — share it with them directly.");
+      setResetMessage("Password reset — share it with them directly. They'll be asked to set their own on next sign-in.");
       setNewPassword("");
     } catch (err) {
       setError(err.message);

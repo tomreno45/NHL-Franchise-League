@@ -55,6 +55,7 @@ function mapAccountRow(row) {
     username: row.username,
     displayName: row.display_name,
     isAdmin: row.is_admin,
+    mustChangePassword: row.must_change_password,
     createdAt: row.created_at,
   };
 }
@@ -299,7 +300,28 @@ async function resetPassword(accountId, newPassword) {
   }
   const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
   const { rows } = await sessionPool.query(
-    "UPDATE accounts SET password_hash = $1 WHERE id = $2 RETURNING *",
+    "UPDATE accounts SET password_hash = $1, must_change_password = true WHERE id = $2 RETURNING *",
+    [passwordHash, accountId]
+  );
+  if (rows.length === 0) {
+    throw notFound("Account not found");
+  }
+  return mapAccountRow(rows[0]);
+}
+
+// The account holder picking their own new password, in response to
+// mustChangePassword — see server.js's POST /api/auth/change-password,
+// reachable only once accountId is already in session (i.e. credentials,
+// old or temporary, were already verified by login). No old-password check
+// needed for the same reason: getting here already proved they hold the
+// current one. Clears the flag, unlike resetPassword which sets it.
+async function changePassword(accountId, newPassword) {
+  if (!newPassword) {
+    throw badRequest("newPassword is required");
+  }
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  const { rows } = await sessionPool.query(
+    "UPDATE accounts SET password_hash = $1, must_change_password = false WHERE id = $2 RETURNING *",
     [passwordHash, accountId]
   );
   if (rows.length === 0) {
@@ -339,6 +361,7 @@ module.exports = {
   removeMembership,
   removeMembershipByIdAsAdmin,
   resetPassword,
+  changePassword,
   deleteAccountEntirely,
   setAdminFlag,
 };
