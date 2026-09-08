@@ -346,6 +346,8 @@ function mapPlayerRow(row) {
     contractYearsLeft: row.contract_years_left,
     inGameStatus: row.in_game_status,
     lineupSlot: row.roster_assignment,
+    draftedSeasonNumber: row.drafted_season_number,
+    rightsOnly: row.rights_only,
     attributes: row.attributes,
     potential: resolvePotential(row.potential, row.age),
     stats: normalizeStats(row.position, row.stats),
@@ -1227,7 +1229,23 @@ async function advanceLeaguePhase() {
       `UPDATE players SET contract_years_left = contract_years_left - 1
        WHERE team_id IS NOT NULL AND contract_years_left > 0`
     );
-    await pool.query("UPDATE players SET team_id = NULL WHERE team_id IS NOT NULL AND contract_years_left <= 0");
+    // rights_only = false excludes unsigned draft-rights players — they sit
+    // at contract_years_left = 0 indefinitely (no real contract to expire),
+    // which would otherwise make this release them the instant they're
+    // drafted. Their own release condition (the 3-year rights clock) is the
+    // separate statement just below.
+    await pool.query(
+      "UPDATE players SET team_id = NULL WHERE team_id IS NOT NULL AND contract_years_left <= 0 AND rights_only = false"
+    );
+    // Draft-rights players whose 3-year exclusive window has now closed
+    // without being signed — released to open free agency, same as any
+    // other unsigned player. Uses newSeasonNumber (not the old one) so a
+    // pick from the season that just ended still gets its full 3rd season.
+    await pool.query(
+      `UPDATE players SET team_id = NULL, rights_only = false
+       WHERE rights_only = true AND drafted_season_number + $1 <= $2`,
+      [DRAFT_RIGHTS_WINDOW_SEASONS, newSeasonNumber]
+    );
 
     await pool.query(
       "UPDATE league_state SET phase = 'free_agency', phase_round = 1, season_number = $1 WHERE id = 1",
@@ -1678,6 +1696,14 @@ async function runProgression() {
   const players = await getPlayers();
   const results = players.map(progressPlayer);
 
+  // Same threshold as the change-sheet report below — a player whose
+  // overall moved enough to be worth flagging there also needs their NHL
+  // 27 attributes hand-updated to match. Only upgrades an 'active' player;
+  // never downgrades someone already 'not_created' — they need a fresh
+  // entry either way, and creating them will naturally use the new values.
+  const flagged = results.filter((r) => Math.abs(r.ovrDelta) >= 2);
+  const flaggedIds = flagged.map((r) => r.playerId);
+
   await withTransaction(async (client) => {
     for (const r of results) {
       await client.query("UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4 WHERE id = $5", [
@@ -1688,9 +1714,13 @@ async function runProgression() {
         r.playerId,
       ]);
     }
+    if (flaggedIds.length > 0) {
+      await client.query(
+        "UPDATE players SET in_game_status = 'needs_update' WHERE id = ANY($1) AND in_game_status = 'active'",
+        [flaggedIds]
+      );
+    }
   });
-
-  const flagged = results.filter((r) => Math.abs(r.ovrDelta) >= 2);
   const changeSheets = teams
     .filter((t) => t.isHumanControlled)
     .map((team) => ({
@@ -2412,9 +2442,12 @@ async function getFreeAgencyBoard(teamId) {
   // Players still on a roster whose contract is about to lapse — not
   // actually free agents yet (their own team can still re-sign them during
   // the resigning phase), just a heads-up preview of who might hit the
-  // market next, viewable in any phase.
+  // market next, viewable in any phase. rights_only excluded — an unsigned
+  // draft pick sits at contractYearsLeft === 0 indefinitely and isn't
+  // "expiring," it just hasn't been signed yet (see getResigningBoard's
+  // separate draftRights list).
   const expiringSoon = players
-    .filter((p) => p.teamId !== null && p.contractYearsLeft <= 1)
+    .filter((p) => p.teamId !== null && !p.rightsOnly && p.contractYearsLeft <= 1)
     .map((p) => ({ ...p, team: teamsById.get(p.teamId) }));
 
   return {
@@ -2517,7 +2550,7 @@ async function resolveFreeAgencyRound(seasonNumber, round) {
       }
 
       await client.query(
-        `UPDATE players SET team_id = $1, cap_hit = $2, contract_years_left = $3, in_game_status = 'needs_update'
+        `UPDATE players SET team_id = $1, cap_hit = $2, contract_years_left = $3
          WHERE id = $4`,
         [winner.teamId, winner.aavMillions, winner.years, playerId]
       );
@@ -2557,8 +2590,12 @@ async function getResigningBoard() {
   const leaguePhase = await getLeaguePhase();
   const [teams, players] = await Promise.all([getTeams(), getPlayers()]);
   const teamsById = new Map(teams.map((t) => [t.id, t]));
+  // rights_only excluded here — they sit at contractYearsLeft === 0
+  // indefinitely (no real contract to expire), which would otherwise
+  // incorrectly surface them as an "expiring contract." They get their own
+  // list below instead.
   const eligible = players.filter(
-    (p) => p.teamId !== null && teamsById.get(p.teamId).isHumanControlled && p.contractYearsLeft <= 1
+    (p) => p.teamId !== null && !p.rightsOnly && teamsById.get(p.teamId).isHumanControlled && p.contractYearsLeft <= 1
   );
 
   // Same round-number-isn't-globally-unique caveat as getFreeAgencyBoard —
@@ -2574,6 +2611,18 @@ async function getResigningBoard() {
     bidRows.forEach((b) => bidByPlayer.set(b.player_id, b));
   }
 
+  // Drafted players a human team hasn't signed yet — not phase-gated like
+  // the exclusive-negotiation list above, since there's no offer/resolve
+  // cycle here (see signDraftRights): a team can sign at any time, so this
+  // is always shown regardless of resigningOpen.
+  const draftRights = players
+    .filter((p) => p.rightsOnly && teamsById.get(p.teamId)?.isHumanControlled)
+    .map((p) => ({
+      ...p,
+      team: teamsById.get(p.teamId),
+      seasonsRemaining: p.draftedSeasonNumber + DRAFT_RIGHTS_WINDOW_SEASONS - leaguePhase.seasonNumber,
+    }));
+
   return {
     seasonNumber: leaguePhase.seasonNumber,
     round: leaguePhase.phaseRound,
@@ -2586,6 +2635,7 @@ async function getResigningBoard() {
         ? { aavMillions: Number(bidByPlayer.get(p.id).aav_millions), years: bidByPlayer.get(p.id).years }
         : null,
     })),
+    draftRights,
   };
 }
 
@@ -2621,6 +2671,58 @@ async function submitResignOffer({ teamId, playerId, aavMillions, years }) {
   }
 
   await upsertFreeAgentBid(leaguePhase.seasonNumber, leaguePhase.phaseRound, playerId, teamId, aavMillions, years);
+
+  return getResigningBoard();
+}
+
+// Signs one of the team's own unsigned draft picks to the standard
+// entry-level deal. Unlike submitResignOffer above, there's no bid/resolve
+// cycle at all — only the drafting team can even act on this player, so the
+// contract either applies immediately or it doesn't; nothing to compare
+// against and nothing to wait for a phase-advance to resolve. Callable in
+// any phase, which is why (unlike every other signing path in this file,
+// all of which happen at one fixed point in the season) the +1 decision
+// below has to be computed rather than hardcoded.
+async function signDraftRights({ teamId, playerId }) {
+  const [teams, players, leaguePhase] = await Promise.all([getTeams(), getPlayers(), getLeaguePhase()]);
+  const team = teams.find((t) => t.id === teamId);
+  if (!team) throw notFound(`Team ${teamId} not found`);
+  if (!team.isHumanControlled) throw badRequest("Only human-controlled teams hold draft rights to sign");
+
+  const player = players.find((p) => p.id === playerId);
+  if (!player) throw notFound(`Player ${playerId} not found`);
+  if (player.teamId !== teamId) throw badRequest(`${player.name}'s rights aren't held by your team`);
+  if (!player.rightsOnly) throw badRequest(`${player.name} is already signed`);
+
+  const contract = entryLevelContract();
+
+  // Same cap-room framing as submitResignOffer — back out the player's
+  // current (always 0, since an unsigned pick sits in MINORS) contribution
+  // first. In practice this can never fail (the ELC is priced at the
+  // league floor), but checking keeps the invariant honest rather than
+  // assuming it.
+  const capSummary = await getTeamCapSummary(teamId);
+  const spaceForThisDeal = capSummary.ceiling - (capSummary.committed - capContribution(player));
+  if (contract.aavMillions > spaceForThisDeal) {
+    throw badRequest(
+      `Signing ${player.name} would put ${team.city} ${team.name} over the salary cap — only $${Math.max(0, spaceForThisDeal).toFixed(3)}M of space available.`
+    );
+  }
+
+  // free_agency and trade_period are the two phases that run immediately
+  // after a wraparound already fired this cycle — a signing there needs no
+  // +1, same as a normal free-agency signing. Every other phase still has
+  // one more wraparound decrement coming before the season truly rolls
+  // over, so it needs the same +1 compensation a resigning-phase or
+  // draft-day signing gets (see executeDraftPick and resolveResigningRound).
+  const yearsToStore = ["free_agency", "trade_period"].includes(leaguePhase.phase)
+    ? contract.years
+    : contract.years + 1;
+
+  await pool.query(
+    "UPDATE players SET cap_hit = $1, contract_years_left = $2, rights_only = false WHERE id = $3",
+    [contract.aavMillions, yearsToStore, playerId]
+  );
 
   return getResigningBoard();
 }
@@ -3030,6 +3132,12 @@ function entryLevelContract() {
   return { years: 3, aavMillions: 0.925 };
 }
 
+// How long a human team exclusively holds a drafted prospect's rights
+// before they're released to open free agency unsigned — see
+// executeDraftPick and signDraftRights below, and the wraparound branch of
+// advanceLeaguePhase.
+const DRAFT_RIGHTS_WINDOW_SEASONS = 3;
+
 function defaultStatsFor(position) {
   return position === "G"
     ? {
@@ -3051,21 +3159,52 @@ function defaultStatsFor(position) {
 // carry over exactly as scouted — the whole point of storing a prospect's
 // full profile up front (see the draft prospects section above) was so
 // this conversion needs no new generation logic of its own.
-async function executeDraftPick(teamId, prospectId) {
+//
+// A CPU pick is signed to the ELC immediately, same as always — there's no
+// strategic value in modeling CPU "decision-making" about when to sign a
+// fixed, non-negotiable contract, and doing so would leave CPU rosters
+// silently missing rookies out of their lineups for years. A human pick
+// instead becomes an unsigned, rights-only player (cap_hit/contract_years_left
+// = 0) — the drafting team holds exclusive signing rights for
+// DRAFT_RIGHTS_WINDOW_SEASONS seasons (see signDraftRights and
+// advanceLeaguePhase's wraparound release sweep).
+async function executeDraftPick(teamId, prospectId, { isHumanControlled }) {
   await withTransaction(async (client) => {
     const { rows } = await client.query("SELECT * FROM draft_prospects WHERE id = $1", [prospectId]);
     if (rows.length === 0) throw notFound(`Prospect ${prospectId} not found`);
     const prospect = rows[0];
-    const contract = entryLevelContract();
     const idRes = await client.query("SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM players");
     const nextId = idRes.rows[0].next_id;
     const jerseyNumber = Math.floor(Math.random() * 89) + 10;
 
+    let capHit;
+    let contractYearsLeft;
+    let draftedSeasonNumber = null;
+    let rightsOnly = false;
+
+    if (isHumanControlled) {
+      capHit = 0;
+      contractYearsLeft = 0;
+      rightsOnly = true;
+      const { rows: stateRows } = await client.query("SELECT season_number FROM league_state WHERE id = 1");
+      draftedSeasonNumber = stateRows[0].season_number;
+    } else {
+      const contract = entryLevelContract();
+      capHit = contract.aavMillions;
+      // +1 for the same reason a fresh resign offer gets it — see
+      // resolveResigningRound. The draft happens after this season's
+      // games are already done, so this rookie deal hasn't had any of
+      // its seasons "used" yet; the universal end-of-cycle decrement in
+      // advanceLeaguePhase's wraparound branch will bring it back down
+      // to the real 3-year term at exactly the right point.
+      contractYearsLeft = contract.years + 1;
+    }
+
     await client.query(
       `INSERT INTO players
          (id, team_id, name, position, jersey_number, age, overall, cap_hit, contract_years_left,
-          in_game_status, roster_assignment, attributes, potential, stats)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'needs_update','MINORS',$10,$11,$12)`,
+          in_game_status, roster_assignment, attributes, potential, stats, drafted_season_number, rights_only)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'needs_update','MINORS',$10,$11,$12,$13,$14)`,
       [
         nextId,
         teamId,
@@ -3074,17 +3213,13 @@ async function executeDraftPick(teamId, prospectId) {
         jerseyNumber,
         prospect.age,
         prospect.overall,
-        contract.aavMillions,
-        // +1 for the same reason a fresh resign offer gets it — see
-        // resolveResigningRound. The draft happens after this season's
-        // games are already done, so this rookie deal hasn't had any of
-        // its seasons "used" yet; the universal end-of-cycle decrement in
-        // advanceLeaguePhase's wraparound branch will bring it back down
-        // to the real 3-year term at exactly the right point.
-        contract.years + 1,
+        capHit,
+        contractYearsLeft,
         JSON.stringify(prospect.attributes),
         JSON.stringify(prospect.potential),
         JSON.stringify(defaultStatsFor(prospect.position)),
+        draftedSeasonNumber,
+        rightsOnly,
       ]
     );
     await client.query("DELETE FROM draft_prospects WHERE id = $1", [prospectId]);
@@ -3170,7 +3305,7 @@ async function advanceDraft() {
     const needsByTeamId = await computeTeamNeeds();
     const chosen = pickBestProspectForTeam(board, needsByTeamId.get(pick.currentTeam.id));
 
-    await executeDraftPick(pick.currentTeam.id, chosen.id);
+    await executeDraftPick(pick.currentTeam.id, chosen.id, { isHumanControlled: false });
     pickIndex++;
     await pool.query("UPDATE league_state SET current_pick_index = $1 WHERE id = 1", [pickIndex]);
   }
@@ -3202,7 +3337,7 @@ async function makeDraftPick({ teamId, prospectId }) {
     throw badRequest(`It's ${currentPick.currentTeam.city} ${currentPick.currentTeam.name}'s turn to pick, not yours`);
   }
 
-  await executeDraftPick(teamId, prospectId);
+  await executeDraftPick(teamId, prospectId, { isHumanControlled: true });
   await pool.query("UPDATE league_state SET current_pick_index = current_pick_index + 1 WHERE id = 1");
   return advanceDraft();
 }
@@ -3476,19 +3611,13 @@ async function respondToHumanTradeOffer({ teamId, offerId, accept }) {
 
   await withTransaction(async (client) => {
     for (const p of offeredPlayers) {
-      await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-        teamId,
-        p.id,
-      ]);
+      await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [teamId, p.id]);
     }
     for (const pickId of offer.offered_pick_ids) {
       await client.query("UPDATE draft_picks SET current_team_id = $1 WHERE id = $2", [teamId, pickId]);
     }
     for (const p of requestedPlayers) {
-      await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-        offer.proposing_team_id,
-        p.id,
-      ]);
+      await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [offer.proposing_team_id, p.id]);
     }
     for (const pickId of offer.requested_pick_ids) {
       await client.query("UPDATE draft_picks SET current_team_id = $1 WHERE id = $2", [offer.proposing_team_id, pickId]);
@@ -3764,10 +3893,7 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
       runningCapByTeam.set(r.target_team_id, projectedTargetCap);
 
       for (const pid of r.offered_player_ids) {
-        await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-          r.target_team_id,
-          pid,
-        ]);
+        await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [r.target_team_id, pid]);
         spentPlayerIds.add(pid);
       }
       for (const pickId of r.offered_pick_ids) {
@@ -3775,10 +3901,7 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
         spentPickIds.add(pickId);
       }
       for (const pid of r.requested_player_ids) {
-        await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-          r.proposing_team_id,
-          pid,
-        ]);
+        await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [r.proposing_team_id, pid]);
         spentPlayerIds.add(pid);
       }
       for (const pickId of r.requested_pick_ids) {
@@ -4034,10 +4157,7 @@ async function respondToCpuTradeOffer({ teamId, offerId, accept }) {
 
   await withTransaction(async (client) => {
     for (const p of offeredPlayers) {
-      await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-        teamId,
-        p.id,
-      ]);
+      await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [teamId, p.id]);
     }
     for (const pickId of offer.offered_pick_ids) {
       await client.query("UPDATE draft_picks SET current_team_id = $1 WHERE id = $2", [teamId, pickId]);
@@ -4165,18 +4285,12 @@ async function generateCpuVsCpuTrade(seasonNumber) {
 
   await withTransaction(async (client) => {
     for (const pid of offeredPlayerIds) {
-      await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-        target.id,
-        pid,
-      ]);
+      await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [target.id, pid]);
     }
     for (const pickId of offeredPickIds) {
       await client.query("UPDATE draft_picks SET current_team_id = $1 WHERE id = $2", [target.id, pickId]);
     }
-    await client.query("UPDATE players SET team_id = $1, in_game_status = 'needs_update' WHERE id = $2", [
-      proposer.id,
-      wanted.id,
-    ]);
+    await client.query("UPDATE players SET team_id = $1 WHERE id = $2", [proposer.id, wanted.id]);
   });
 
   const describe = (playerIds, pickIds) => describeAssetNames(playerIds, pickIds, playersById, picksById);
@@ -4318,6 +4432,7 @@ module.exports = {
   submitFreeAgentBid,
   getResigningBoard,
   submitResignOffer,
+  signDraftRights,
   getLineupSlots,
   assignLineupSlot,
   autoSetLineup,
@@ -4369,6 +4484,7 @@ module.exports = {
   getTeamCapHit,
   getTeamCapSummary,
   generateCpuTradeOffers, // exported for standalone analysis/verification scripts (see server/scripts/) — same pattern as the other CPU generators above
+  executeDraftPick, // exported for standalone verification scripts — same reasoning as generateCpuTradeOffers above
   getCpuTradeOffers,
   respondToCpuTradeOffer,
   generateCpuVsCpuTrade, // exported for standalone analysis/verification scripts (see server/scripts/) — same pattern as the other CPU generators above

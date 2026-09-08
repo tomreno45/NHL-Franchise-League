@@ -941,6 +941,19 @@ app.post(
   })
 );
 
+// Signs one of the team's own unsigned draft picks to the standard
+// entry-level deal — no offer/resolve cycle, since only the drafting team
+// can act on it (see store.js's signDraftRights). Available any time, not
+// gated to the resigning phase.
+app.post(
+  "/api/resigning/sign-draft-rights",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    const { playerId } = req.body;
+    res.json(await store.signDraftRights({ teamId: req.teamId, playerId: Number(playerId) }));
+  })
+);
+
 // No server-side limit/sort beyond a sane default — the Stats page fetches
 // the full (optionally team-filtered) list once and does sort-by-column
 // itself, so switching the sort field never has to re-fetch or risk

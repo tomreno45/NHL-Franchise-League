@@ -80,6 +80,52 @@ function OfferRow({ player, teamId, onOffer }) {
   );
 }
 
+// No offer form here, unlike OfferRow above — signing a draft pick's rights
+// is always the same fixed entry-level deal, and there's no competing bid
+// to beat (only the drafting team can even act on it), so it's a single
+// click rather than a negotiation.
+function DraftRightsRow({ player, onSign }) {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  const sign = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      await onSign(player.id);
+    } catch (e) {
+      setMessage(e.message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <tr className="border-b border-slate-800 last:border-0">
+      <td className="sticky left-0 z-10 bg-slate-900 px-3 py-2 text-slate-100">{player.name}</td>
+      <td className="px-3 py-2 text-slate-300">{player.position}</td>
+      <td className="px-3 py-2 text-right text-slate-300">{player.age}</td>
+      <td className="px-3 py-2 text-right font-semibold text-slate-100">{player.overall}</td>
+      <td className="px-3 py-2">
+        <StarRating value={player.potential.stars} colorClass={CONFIDENCE_COLORS[player.potential.confidence]} />
+      </td>
+      <td className="px-3 py-2 text-slate-400">
+        {player.seasonsRemaining} season{player.seasonsRemaining === 1 ? "" : "s"} left
+      </td>
+      <td className="px-3 py-2">
+        <button
+          type="button"
+          onClick={sign}
+          disabled={busy}
+          className="rounded-md bg-sky-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+        >
+          {busy ? "…" : "Sign — $0.925M / 3yr"}
+        </button>
+        {message && <div className="mt-1 text-xs text-red-400">{message}</div>}
+      </td>
+    </tr>
+  );
+}
+
 function ReadOnlyRow({ player }) {
   return (
     <tr className="border-b border-slate-800 last:border-0">
@@ -115,11 +161,17 @@ export default function Resigning() {
     reload();
   };
 
+  const handleSignDraftRights = async (playerId) => {
+    await api.signDraftRights({ teamId: myTeamId, playerId });
+    reload();
+  };
+
   if (error) return <p className="text-red-500">{error}</p>;
   if (myTeamId == null || !board) return <p className="text-slate-400">Loading re-signing board…</p>;
 
   const myTeam = teams.find((t) => t.id === myTeamId);
   const myPending = board.players.filter((p) => p.team.id === myTeamId);
+  const myDraftRights = board.draftRights.filter((p) => p.team.id === myTeamId);
   const resigningOpen = board.resigningOpen;
 
   return (
@@ -180,6 +232,35 @@ export default function Resigning() {
           <tbody>
             {myPending.map((p) => (
               <ReadOnlyRow key={p.id} player={p} />
+            ))}
+          </tbody>
+        </table>
+        </div>
+      )}
+
+      <div className="mb-1 mt-8 text-lg font-semibold text-slate-100">Draft Rights</div>
+      <p className="mb-4 text-sm text-slate-500">
+        Exclusive to your team for 3 seasons from the draft. Sign to the standard entry-level deal any time, or let
+        the window close and they hit free agency.
+      </p>
+      {myDraftRights.length === 0 ? (
+        <p className="text-slate-400">No unsigned draft picks right now.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg"><table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-800 text-left text-slate-400">
+              <th className="sticky left-0 z-10 bg-slate-800 px-3 py-2 font-medium">Name</th>
+              <th className="px-3 py-2 font-medium">Pos</th>
+              <th className="px-3 py-2 text-right font-medium">Age</th>
+              <th className="px-3 py-2 text-right font-medium">OVR</th>
+              <th className="px-3 py-2 font-medium">Potential</th>
+              <th className="px-3 py-2 font-medium">Rights Clock</th>
+              <th className="px-3 py-2 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {myDraftRights.map((p) => (
+              <DraftRightsRow key={p.id} player={p} onSign={handleSignDraftRights} />
             ))}
           </tbody>
         </table>

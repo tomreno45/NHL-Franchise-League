@@ -42,6 +42,21 @@ ALTER TABLE players ADD COLUMN IF NOT EXISTS roster_assignment TEXT NOT NULL DEF
 UPDATE players SET roster_assignment = 'MINORS' WHERE roster_assignment = 'active';
 ALTER TABLE players ALTER COLUMN roster_assignment SET DEFAULT 'MINORS';
 
+-- Set once at draft time, never changes — provenance for the 3-year rights
+-- clock below. NULL for every player who wasn't drafted through this app
+-- (imported rosters, etc.) or who was drafted by a CPU team (signed
+-- immediately, no rights window — see executeDraftPick in store.js).
+ALTER TABLE players ADD COLUMN IF NOT EXISTS drafted_season_number INTEGER;
+
+-- True from the moment a human team drafts a prospect until they either
+-- sign the player to the entry-level deal (see store.js's signDraftRights)
+-- or the 3-year window closes and they're released to free agency (see the
+-- wraparound branch of advanceLeaguePhase). A rights-only player sits at
+-- cap_hit=0 and contract_years_left=0 indefinitely — this flag is what
+-- distinguishes that from a signed player who happens to be at 0 for one
+-- transient instant right before release.
+ALTER TABLE players ADD COLUMN IF NOT EXISTS rights_only BOOLEAN NOT NULL DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS games (
   id INTEGER PRIMARY KEY,
   date DATE NOT NULL,

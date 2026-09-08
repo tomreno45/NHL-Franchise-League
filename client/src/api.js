@@ -63,6 +63,7 @@ export const api = {
   submitFreeAgentBid: (payload) => send("POST", "/freeagency/bids", payload),
   getResigningBoard: () => get("/resigning/board"),
   submitResignOffer: (payload) => send("POST", "/resigning/offers", payload),
+  signDraftRights: (payload) => send("POST", "/resigning/sign-draft-rights", payload),
   getTradeProposals: (teamId) => get(`/traderounds/proposals${teamId ? `?teamId=${teamId}` : ""}`),
   submitTradeProposal: (payload) => send("POST", "/traderounds/proposals", payload),
   getCpuTradeOffers: () => get("/traderounds/cpu-offers"),
