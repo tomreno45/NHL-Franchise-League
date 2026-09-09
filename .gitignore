@@ -6,3 +6,6 @@ db_backups/
 
 # Local dev logs
 *.log
+
+# LibreOffice/OpenOffice lock files left behind when a spreadsheet is open
+.~lock.*#

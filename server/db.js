@@ -23,6 +23,7 @@ const LEAGUES = {
   test: { label: "Test", connectionString: process.env.DATABASE_URL_TEST },
   development: { label: "Development", connectionString: process.env.DATABASE_URL_DEVELOPMENT },
   production: { label: "Production", connectionString: process.env.DATABASE_URL_PRODUCTION },
+  og_hfl: { label: "OG HFL", connectionString: process.env.DATABASE_URL_OG_HFL },
 };
 const LEAGUE_SLUGS = Object.keys(LEAGUES);
 
