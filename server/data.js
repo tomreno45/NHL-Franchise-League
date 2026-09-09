@@ -11,17 +11,26 @@ const { generateRoundRobinSchedule } = require("./scheduleGenerator");
 
 // All 32 real NHL franchises, real conference/division alignment. ids 1-8
 // are the original mock franchises (kept stable across the 8->32 expansion
-// so existing FKs — users.team_id for the detroit/nashville GM logins,
-// historical draft_order/season_results rows — don't need to change); ids
-// 9-32 are the 24 teams added for the expansion, in alphabetical-by-city
-// order. Only Detroit and Nashville are human-controlled.
+// so existing FKs — historical draft_order/season_results rows — don't need
+// to change); ids 9-32 are the 24 teams added for the expansion, in
+// alphabetical-by-city order.
+//
+// isHumanControlled is every team's starting point when a league is first
+// seeded (or fully re-seeded, e.g. scripts/importOgHflRosters.js) — always
+// false here. Which teams are actually human-controlled is decided later,
+// per league, by real accounts/account_memberships (see accounts.js), not
+// by this static list. This used to read true for Detroit/Nashville, a
+// leftover from the original single-league prototype where those two really
+// were the only human GMs — left in place through the Test/Development/
+// Production split without anyone noticing, until a freshly-seeded OG HFL
+// league (no Detroit/Nashville accounts at all) surfaced it as a real bug.
 const teams = [
   { id: 1, city: "Boston", name: "Bruins", abbr: "BOS", conference: "Eastern", division: "Atlantic", isHumanControlled: false },
   { id: 2, city: "Toronto", name: "Maple Leafs", abbr: "TOR", conference: "Eastern", division: "Atlantic", isHumanControlled: false },
   { id: 3, city: "Chicago", name: "Blackhawks", abbr: "CHI", conference: "Western", division: "Central", isHumanControlled: false },
-  { id: 4, city: "Nashville", name: "Predators", abbr: "NSH", conference: "Western", division: "Central", isHumanControlled: true },
+  { id: 4, city: "Nashville", name: "Predators", abbr: "NSH", conference: "Western", division: "Central", isHumanControlled: false },
   { id: 5, city: "Dallas", name: "Stars", abbr: "DAL", conference: "Western", division: "Central", isHumanControlled: false },
-  { id: 6, city: "Detroit", name: "Red Wings", abbr: "DET", conference: "Eastern", division: "Atlantic", isHumanControlled: true },
+  { id: 6, city: "Detroit", name: "Red Wings", abbr: "DET", conference: "Eastern", division: "Atlantic", isHumanControlled: false },
   { id: 7, city: "Colorado", name: "Avalanche", abbr: "COL", conference: "Western", division: "Central", isHumanControlled: false },
   { id: 8, city: "Vegas", name: "Golden Knights", abbr: "VGK", conference: "Western", division: "Pacific", isHumanControlled: false },
   { id: 9, city: "Anaheim", name: "Ducks", abbr: "ANA", conference: "Western", division: "Pacific", isHumanControlled: false },
