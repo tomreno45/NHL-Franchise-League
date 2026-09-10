@@ -480,13 +480,24 @@ app.use(requireAuth);
 // session's user actually controls, never a client-supplied id, so one GM
 // can no longer act on another team's behalf just by passing a different
 // teamId. A commissioner-only account (team_id null) can't use these.
-function requireTeam(req, res, next) {
-  if (req.session.teamId == null) {
+//
+// Looks up the CURRENT membership fresh rather than trusting
+// req.session.teamId, which is only ever set once, at login/select-league
+// time — an admin assigning someone to a team after they're already logged
+// in would otherwise leave that session stuck reporting "not assigned to a
+// team" until they happened to log out and back in, even though
+// /api/auth/me (which does re-check fresh) already showed the right team.
+// Also refreshes the session's own cached copy so it self-heals instead of
+// re-querying every request after the first one post-reassignment.
+const requireTeam = asyncRoute(async (req, res, next) => {
+  const membership = await accounts.getMembership(req.session.accountId, req.session.leagueSlug);
+  if (!membership || membership.teamId == null) {
     return res.status(403).json({ error: "This account isn't assigned to a team" });
   }
-  req.teamId = req.session.teamId;
+  req.teamId = membership.teamId;
+  req.session.teamId = membership.teamId;
   next();
-}
+});
 
 // For the league-wide actions only the commissioner should be able to
 // trigger (advancing the season's phase/date, crowning a champion,
