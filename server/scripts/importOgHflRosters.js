@@ -36,8 +36,19 @@ function clamp(v, min, max) {
 function randInt(min, max) {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
+// Strips accents before comparing — the xlsx scrape kept real diacritics
+// ("Guénette", "Söderblom", "Niemelä") but the salary CSV's export flattened
+// them to plain ASCII ("Guenette", "Soderblom", "Niemela"). Without this,
+// every accented name in the xlsx silently failed to match its real salary
+// row and fell back to computed demand instead — found by auditing exactly
+// which players didn't match after the initial import.
 function normName(s) {
-  return (s || "").trim().toUpperCase().replace(/\s+/g, " ");
+  return (s || "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toUpperCase()
+    .replace(/\s+/g, " ");
 }
 
 // Smart-enough Title Case for the all-caps xlsx names (used only when no
