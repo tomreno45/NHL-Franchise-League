@@ -1808,10 +1808,15 @@ async function computeDraftOrder() {
   const standingsByTeam = new Map(standings.map((s) => [s.teamId, s]));
   const gamesPerTeam = teams.length ? (seasonInfo.totalGames * 2) / teams.length : 0;
 
+  // Active lineup only — MINORS and SCRATCH don't play, so a deep-but-buried
+  // prospect pipeline or a long injury/scratch list shouldn't make a team
+  // look stronger (or weaker) than the roster actually dressing every night.
   const overallsByTeam = new Map(
     teams.map((t) => {
-      const roster = players.filter((p) => p.teamId === t.id);
-      const avgOverall = roster.length ? mean(roster.map((p) => p.overall)) : 70;
+      const activeRoster = players.filter(
+        (p) => p.teamId === t.id && p.lineupSlot !== "MINORS" && p.lineupSlot !== "SCRATCH"
+      );
+      const avgOverall = activeRoster.length ? mean(activeRoster.map((p) => p.overall)) : 70;
       return [t.id, avgOverall];
     })
   );
