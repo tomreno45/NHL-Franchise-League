@@ -4444,6 +4444,7 @@ module.exports = {
   getResigningBoard,
   submitResignOffer,
   signDraftRights,
+  DRAFT_RIGHTS_WINDOW_SEASONS, // exported so import scripts can put a player straight into the same rights-held state a fresh draft pick starts in, without duplicating the "3" as a second magic number
   getLineupSlots,
   assignLineupSlot,
   autoSetLineup,

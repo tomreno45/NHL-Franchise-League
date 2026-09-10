@@ -15,6 +15,11 @@
 //   - all_teams_salaries.csv: real AAV/years-remaining per player, used
 //     directly instead of the app's own computeContractDemand formula
 //     wherever a name match is found (join key: team + normalized name).
+//     No match found: 22-and-under goes in as unsigned/rights-held for
+//     DRAFT_RIGHTS_WINDOW_SEASONS seasons (see the RIGHTS_HELD_MAX_AGE
+//     section below), same state a fresh, unsigned draft pick starts in.
+//     23+ with no real contract is rare and flagged in the run's own log
+//     output for the commissioner to set by hand instead of guessed at.
 //   - all_teams_draft_picks.csv: real 2027-2031 draft-pick ownership,
 //     including trade history, imported straight into draft_picks
 //     (season_number = real year - 2026, matching CURRENT_SEASON_START in
@@ -41,12 +46,17 @@ function randInt(min, max) {
 // them to plain ASCII ("Guenette", "Soderblom", "Niemela"). Without this,
 // every accented name in the xlsx silently failed to match its real salary
 // row and fell back to computed demand instead — found by auditing exactly
-// which players didn't match after the initial import.
+// which players didn't match after the initial import. Hyphens and periods
+// are treated as spaces for the same reason, one level down: "Axel
+// Sandin-Pellikka" vs. the CSV's "Axel Sandin Pellikka", and "Hunter
+// St.martin" vs. "Hunter St. Martin" — same person, different punctuation
+// convention between the two sources.
 function normName(s) {
   return (s || "")
     .trim()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
+    .replace(/[-.]/g, " ")
     .toUpperCase()
     .replace(/\s+/g, " ");
 }
@@ -109,6 +119,36 @@ function findSalaryMatch(salaryByKey, teamId, rawName) {
     if (match) return match;
   }
   return undefined;
+}
+
+// A handful of players whose xlsx name field is simply wrong, not a
+// spelling/casing/nickname variant no amount of fuzzy matching would ever
+// paper over: six different players lost their first name entirely (every
+// one of them happens to be named "Ty" — something about that specific
+// name seems to have broken the scraper), and two multi-word names got
+// concatenated into one. Found by manually auditing every player who still
+// didn't match a real salary after every other rule above ran. Corrects
+// the name itself (not just the salary lookup) since these are factually
+// wrong, unlike a nickname/diacritic variant which is just a different
+// valid spelling of the same name.
+const MANUAL_NAME_FIXES_BY_TEAM_ABBR = {
+  EDM: [["Emberson", "Ty Emberson"]],
+  PHI: [["Murchison", "Ty Murchison"]],
+  SJS: [["Dellandrea", "Ty Dellandrea"]],
+  SEA: [["Nelson", "Ty Nelson"]],
+  VAN: [
+    ["Mueller", "Ty Mueller"],
+    ["Young", "Ty Young"],
+  ],
+  MIN: [["Joel Erikssonek", "Joel Eriksson Ek"]],
+  PIT: [["Trevor Vanriemsdyk", "Trevor van Riemsdyk"]],
+};
+
+function fixRawName(teamAbbr, rawName) {
+  const fixes = MANUAL_NAME_FIXES_BY_TEAM_ABBR[teamAbbr];
+  if (!fixes) return rawName;
+  const hit = fixes.find(([broken]) => normName(broken) === normName(rawName));
+  return hit ? hit[1] : rawName;
 }
 
 // Smart-enough Title Case for the all-caps xlsx names (used only when no
@@ -358,17 +398,19 @@ async function main() {
 
   const parsedPlayers = [];
   const usedNumbersByTeam = new Map();
+  const teamIdToAbbr = new Map(TEAM_DEFS.map((t) => [t.id, t.abbr]));
   let skippedPlayerRows = 0;
 
   sheet.eachRow({ includeEmpty: false }, (row, rowNum) => {
     if (rowNum === 1) return;
     const v = row.values;
     const teamId = abbrToId.get((v[colIndex.Team] || "").toString().trim().toLowerCase());
-    const rawName = (v[colIndex.Name] || "").toString().trim();
+    let rawName = (v[colIndex.Name] || "").toString().trim();
     if (!teamId || !rawName) {
       skippedPlayerRows++;
       return;
     }
+    rawName = fixRawName(teamIdToAbbr.get(teamId), rawName);
 
     const position = primaryPosition(v[colIndex.Position]);
     if (!["C", "LW", "RW", "D", "G"].includes(position)) {
@@ -435,7 +477,23 @@ async function main() {
     if (teamId) casedNameByKey.set(`${teamId}|${normName(row.Player)}`, row.Player);
   }
 
+  // A real-NHL player with no contract on file is only ambiguous once —
+  // below this age, the house rule is simple: they're unsigned, but their
+  // rights sit with whatever team the xlsx has them on for
+  // DRAFT_RIGHTS_WINDOW_SEASONS seasons, same as a freshly drafted pick who
+  // hasn't been signed yet (see store.js's executeDraftPick/signDraftRights
+  // — this puts them in the exact same state, so they show up on the
+  // Re-Signing tab's Draft Rights section and can be signed to the entry-
+  // level deal at any time, or released to free agency if the window
+  // closes unsigned). 23+ with no real contract is rare enough that it's
+  // meant to be reviewed by hand instead — an RFA or other real-world edge
+  // case the commissioner will set explicitly, not something worth
+  // guessing at with a formula.
+  const RIGHTS_HELD_MAX_AGE = 22;
+
   let matchedContracts = 0;
+  let rightsHeldCount = 0;
+  const needsManualSalary = [];
   for (const p of parsedPlayers) {
     const cased = casedNameByKey.get(`${p.teamId}|${normName(p.rawName)}`);
     p.name = cased || titleCaseName(p.rawName);
@@ -443,19 +501,38 @@ async function main() {
     if (p.salaryMatch && p.salaryMatch.aavMillions != null && p.salaryMatch.years != null) {
       p.capHit = p.salaryMatch.aavMillions;
       p.contractYearsLeft = p.salaryMatch.years;
+      p.rightsOnly = false;
+      p.draftedSeasonNumber = null;
       matchedContracts++;
+    } else if (p.age <= RIGHTS_HELD_MAX_AGE) {
+      p.capHit = 0;
+      p.contractYearsLeft = 0;
+      p.rightsOnly = true;
+      p.draftedSeasonNumber = 1; // this import's own season 1 starts their rights clock
+      rightsHeldCount++;
     } else {
+      // Still needs a number so the row is insertable and the roster isn't
+      // missing a player — computeContractDemand's estimate is a
+      // placeholder to be overwritten by the commissioner, not a real
+      // answer.
       const demand = store.computeContractDemand({ age: p.age, overall: p.overall, potential: p.potential });
       p.capHit = demand.aavMillions;
       p.contractYearsLeft = randInt(1, 6);
+      p.rightsOnly = false;
+      p.draftedSeasonNumber = null;
+      needsManualSalary.push(`${p.name} (${teamIdToAbbr.get(p.teamId)}, age ${p.age}, ${p.overall} OVR)`);
     }
     delete p.salaryMatch;
     delete p.rawName;
   }
 
   console.log(
-    `Parsed ${parsedPlayers.length} real players across 32 teams (${matchedContracts} matched a real contract; the rest fell back to computed demand). Skipped ${skippedPlayerRows} rows.`
+    `Parsed ${parsedPlayers.length} real players across 32 teams: ${matchedContracts} matched a real contract, ${rightsHeldCount} age ${RIGHTS_HELD_MAX_AGE} or under with no contract are now unsigned/rights-held for ${store.DRAFT_RIGHTS_WINDOW_SEASONS} seasons, ${needsManualSalary.length} are ${RIGHTS_HELD_MAX_AGE + 1}+ with no contract on file and need a manual salary. Skipped ${skippedPlayerRows} rows.`
   );
+  if (needsManualSalary.length > 0) {
+    console.log(`Needs a manual salary (${RIGHTS_HELD_MAX_AGE + 1}+, no real contract found):`);
+    needsManualSalary.forEach((line) => console.log(`  ${line}`));
+  }
 
   // --- 4. Sync teams table (idempotent upsert, same as importRealRosters.js) ---
   for (const t of TEAM_DEFS) {
@@ -504,8 +581,9 @@ async function main() {
     await pool.query(
       `INSERT INTO players
          (id, team_id, name, position, jersey_number, age, overall, cap_hit,
-          contract_years_left, in_game_status, roster_assignment, attributes, potential, stats)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'not_created','MINORS',$10,$11,$12)`,
+          contract_years_left, in_game_status, roster_assignment, attributes, potential, stats,
+          rights_only, drafted_season_number)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'not_created','MINORS',$10,$11,$12,$13,$14)`,
       [
         nextId,
         p.teamId,
@@ -519,6 +597,8 @@ async function main() {
         JSON.stringify(p.attributes),
         JSON.stringify(p.potential),
         JSON.stringify(stats),
+        p.rightsOnly,
+        p.draftedSeasonNumber,
       ]
     );
     nextId++;
