@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { pool, withTransaction } = require("./db");
+const { pool, withTransaction, getActiveLeagueSlug } = require("./db");
 const { generateNhlStyleSchedule } = require("./scheduleGenerator");
 const push = require("./push");
 const {
@@ -276,24 +276,35 @@ function computeContractDemand(player) {
 // --- Salary cap ---
 //
 // Upper limit only — no cap floor, and no LTIR/retention/buyout exceptions.
-// This league runs its own house-rule cap ($160.0M for season 1, the
-// 2026-27 season — see client/src/seasonYear.js) rather than the real NHL's
-// actual announced $104.0M, deliberately raised to give the real imported
-// rosters (whose real-NHL cap hits routinely exceeded $104M once assembled
-// on one side) actual room to be cap-compliant. Season 2 continues at the
-// same ~8.5%/year the real confirmed 2026-27 -> 2027-28 jump used, rounded
-// to the nearest $0.5M, and every season past that extrapolates at that
-// same rate — a placeholder curve, not real NHL numbers, flagged here so
-// it's easy to find and adjust again later.
-const KNOWN_CAP_CEILINGS = { 1: 160.0, 2: 173.5 }; // 2026-27, 2027-28
+// Test/Development/Production run a house-rule cap ($160.0M for season 1,
+// the 2026-27 season — see client/src/seasonYear.js) rather than the real
+// NHL's actual announced $104.0M, deliberately raised to give those
+// leagues' real imported rosters (whose real-NHL cap hits routinely
+// exceeded $104M once assembled on one side) actual room to be
+// cap-compliant. Season 2 continues at the same ~8.5%/year the real
+// confirmed 2026-27 -> 2027-28 jump used, rounded to the nearest $0.5M, and
+// every season past that extrapolates at that same rate — a placeholder
+// curve, not real NHL numbers, flagged here so it's easy to find and adjust
+// again later.
+//
+// OG HFL gets its own realistic ceiling instead ($107M) rather than that
+// inflated house number — an explicit choice, not an oversight: it accepts
+// that real rosters may already run tight (or over) against a real-sized
+// cap, since this app still has none of the real cap-management tools
+// (LTIR, retention, buyouts) that let real teams actually fit under one.
+const DEFAULT_CAP_CEILINGS = { 1: 160.0, 2: 173.5 }; // 2026-27, 2027-28
+const LEAGUE_CAP_CEILINGS = {
+  og_hfl: { 1: 107.0 },
+};
 const CAP_GROWTH_RATE = 0.085;
 
 function getCapCeiling(seasonNumber) {
-  const lastKnownSeason = Math.max(...Object.keys(KNOWN_CAP_CEILINGS).map(Number));
+  const knownCeilings = LEAGUE_CAP_CEILINGS[getActiveLeagueSlug()] || DEFAULT_CAP_CEILINGS;
+  const lastKnownSeason = Math.max(...Object.keys(knownCeilings).map(Number));
   if (seasonNumber <= lastKnownSeason) {
-    return KNOWN_CAP_CEILINGS[seasonNumber] ?? KNOWN_CAP_CEILINGS[lastKnownSeason];
+    return knownCeilings[seasonNumber] ?? knownCeilings[lastKnownSeason];
   }
-  let ceiling = KNOWN_CAP_CEILINGS[lastKnownSeason];
+  let ceiling = knownCeilings[lastKnownSeason];
   for (let s = lastKnownSeason + 1; s <= seasonNumber; s++) {
     ceiling = Math.round(ceiling * (1 + CAP_GROWTH_RATE) * 2) / 2;
   }
