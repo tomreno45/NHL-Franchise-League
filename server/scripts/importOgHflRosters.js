@@ -51,6 +51,66 @@ function normName(s) {
     .replace(/\s+/g, " ");
 }
 
+// Common English nickname/full-name first-name pairs — the two sources
+// disagree on which form they use often enough to be worth a small fixed
+// table (Matt Boldy vs. Matthew Boldy is the one that got reported; the
+// same pattern turned up ~20 more times on auditing). Deliberately just
+// well-known 1:1 pairs, not fuzzy matching — a wrong guess here would
+// silently apply the wrong person's salary.
+const NICKNAME_PAIRS = [
+  ["matt", "matthew"],
+  ["will", "william"],
+  ["nick", "nicholas"],
+  ["mike", "michael"],
+  ["alex", "alexander"],
+  ["joe", "joseph"],
+  ["chris", "christopher"],
+  ["zach", "zachary"],
+  ["sam", "samuel"],
+  ["ben", "benjamin"],
+  ["josh", "joshua"],
+  ["dan", "daniel"],
+  ["tom", "thomas"],
+  ["andy", "andrew"],
+  ["rob", "robert"],
+  ["jack", "jackson"],
+  ["nate", "nathan"],
+  ["tony", "anthony"],
+  ["cam", "cameron"],
+  ["jon", "jonathan"],
+  ["greg", "gregory"],
+  ["steve", "steven"],
+  ["ed", "edward"],
+  ["jim", "james"],
+  ["ken", "kenneth"],
+  ["pat", "patrick"],
+];
+
+// Tries the exact normalized name first, then — only if that fails — swaps
+// the first name for its nickname/full-name counterpart and tries again.
+// Used only to look up AAV/years, never to change what a player is actually
+// called (see the cased-name lookup below, which is deliberately untouched
+// by this).
+function findSalaryMatch(salaryByKey, teamId, rawName) {
+  const exact = salaryByKey.get(`${teamId}|${normName(rawName)}`);
+  if (exact) return exact;
+
+  const parts = rawName.trim().split(/\s+/);
+  if (parts.length < 2) return undefined;
+  const first = parts[0].toLowerCase();
+  const rest = parts.slice(1).join(" ");
+  for (const [nick, full] of NICKNAME_PAIRS) {
+    let altFirst = null;
+    if (first === nick) altFirst = full;
+    else if (first === full) altFirst = nick;
+    if (!altFirst) continue;
+    const altName = altFirst.charAt(0).toUpperCase() + altFirst.slice(1) + " " + rest;
+    const match = salaryByKey.get(`${teamId}|${normName(altName)}`);
+    if (match) return match;
+  }
+  return undefined;
+}
+
 // Smart-enough Title Case for the all-caps xlsx names (used only when no
 // salary-CSV match supplies an already-nicely-cased name) — handles
 // Mc/Mac and apostrophe/hyphen segments so "MCDAVID" / "O'BRIEN" /
@@ -350,7 +410,7 @@ async function main() {
     }
     numState.used.add(jerseyNumber);
 
-    const salaryMatch = salaryByKey.get(`${teamId}|${normName(rawName)}`);
+    const salaryMatch = findSalaryMatch(salaryByKey, teamId, rawName);
 
     parsedPlayers.push({
       teamId,
