@@ -1199,17 +1199,19 @@ async function advanceLeaguePhase() {
 
   await PHASE_RESOLVERS[state.phase](state);
 
-  // Set only on an actual phase change (not a same-phase round bump) — a
-  // "League has advanced to Trade Period" push when round 2 of 5 just
-  // started would be confusing, since the league didn't move to a new
-  // stage at all.
-  let newPhase = null;
+  // Every advance pushes something now — either "moved to a new phase" or
+  // "moved to the next round of the same phase" (e.g. Trade Period 1 -> 2) —
+  // set to the right message by whichever of the three branches below
+  // actually fires, then sent exactly once at the end.
+  let pushBody = null;
 
   if (state.phase_round < step.rounds) {
+    const nextRound = state.phase_round + 1;
     await pool.query("UPDATE league_state SET phase_round = phase_round + 1 WHERE id = 1");
+    pushBody = `${PHASE_LABELS[state.phase] || state.phase} has advanced to Round ${nextRound} of ${step.rounds}.`;
   } else if (stepIndex < PHASE_SEQUENCE.length - 1) {
     const nextPhase = PHASE_SEQUENCE[stepIndex + 1].phase;
-    newPhase = nextPhase;
+    pushBody = `League has advanced to ${PHASE_LABELS[nextPhase] || nextPhase}.`;
     if (nextPhase === "draft") {
       // Entering the draft always starts the pick order over from the top.
       await pool.query("UPDATE league_state SET phase = $1, phase_round = 1, current_pick_index = 0 WHERE id = 1", [
@@ -1225,7 +1227,7 @@ async function advanceLeaguePhase() {
     // reuse the exact functions the draft-picks and draft-board features
     // already shipped with, applied to the new season number.
     const newSeasonNumber = state.season_number + 1;
-    newPhase = "free_agency";
+    pushBody = `League has advanced to ${PHASE_LABELS.free_agency || "free_agency"}.`;
 
     // Every rostered contract ages exactly one season here (once per full
     // trip through the loop) — anyone hitting 0 who wasn't just re-signed
@@ -1266,11 +1268,8 @@ async function advanceLeaguePhase() {
     await generateRandomDraftClass(newSeasonNumber);
   }
 
-  if (newPhase) {
-    await push.sendToAllUsers({
-      title: "Hockey Franchise League",
-      body: `League has advanced to ${PHASE_LABELS[newPhase] || newPhase}.`,
-    });
+  if (pushBody) {
+    await push.sendToAllUsers({ title: "Hockey Franchise League", body: pushBody });
   }
 
   return getLeaguePhase();
@@ -3588,6 +3587,14 @@ async function respondToHumanTradeOffer({ teamId, offerId, accept }) {
     await pool.query("UPDATE human_trade_offers SET status = 'declined' WHERE id = $1", [offerId]);
     await createNotification(offer.proposing_team_id, `${targetAbbr} declined your trade offer.`, "success", {
       leagueVisible: false,
+    });
+    // Same reasoning as the "sent you a trade offer" push on the other end
+    // of this exchange — a direct human-to-human offer is waiting on one
+    // specific person, so its outcome is worth interrupting them for, the
+    // same way the offer itself was.
+    await push.sendToTeam(offer.proposing_team_id, {
+      title: "Trade Offer Declined",
+      body: `${targetAbbr} declined your trade offer.`,
     });
     return { status: "declined" };
   }
