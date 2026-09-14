@@ -3,6 +3,19 @@ import { api } from "../api";
 import { draftYear } from "../seasonYear";
 import TradeValueBar from "./TradeValueBar";
 
+function VetoButton({ busy, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      className="rounded-md bg-red-700 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
+    >
+      {busy ? "Vetoing…" : "Veto"}
+    </button>
+  );
+}
+
 function describeAssets(players, picks) {
   const parts = [...players.map((p) => p.name), ...picks.map((p) => `${draftYear(p.seasonNumber)} R${p.round} pick`)];
   return parts.length > 0 ? parts.join(", ") : "Nothing";
@@ -57,10 +70,39 @@ function OfferTable({ offers }) {
 export default function LeaguePendingMoves() {
   const [moves, setMoves] = useState(null);
   const [error, setError] = useState(null);
+  const [vetoingKey, setVetoingKey] = useState(null);
+
+  const reload = () => api.getLeagueWidePendingMoves().then(setMoves).catch((e) => setError(e.message));
 
   useEffect(() => {
-    api.getLeagueWidePendingMoves().then(setMoves).catch((e) => setError(e.message));
+    reload();
   }, []);
+
+  const handleVetoHumanTrade = async (offerId) => {
+    setVetoingKey(`human-${offerId}`);
+    setError(null);
+    try {
+      await api.vetoHumanTradeOffer(offerId);
+      await reload();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setVetoingKey(null);
+    }
+  };
+
+  const handleVetoCpuTargetTrade = async (proposalId) => {
+    setVetoingKey(`cpu-${proposalId}`);
+    setError(null);
+    try {
+      await api.vetoTradeProposal(proposalId);
+      await reload();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setVetoingKey(null);
+    }
+  };
 
   if (error) return <p className="text-red-500">{error}</p>;
   if (!moves) return <p className="text-slate-400">Loading pending moves…</p>;
@@ -102,6 +144,7 @@ export default function LeaguePendingMoves() {
                   <th className="px-3 py-2 font-medium">Target Team</th>
                   <th className="px-3 py-2 font-medium">Offers</th>
                   <th className="px-3 py-2 font-medium">Wants</th>
+                  <th className="px-3 py-2 font-medium"></th>
                 </tr>
               </thead>
               <tbody>
@@ -111,6 +154,9 @@ export default function LeaguePendingMoves() {
                     <td className="px-3 py-2 text-slate-100">{teamLabel(t.targetTeam)}</td>
                     <td className="px-3 py-2 text-slate-400">{describeAssets(t.offered.players, t.offered.picks)}</td>
                     <td className="px-3 py-2 text-slate-400">{describeAssets(t.requested.players, t.requested.picks)}</td>
+                    <td className="px-3 py-2">
+                      <VetoButton busy={vetoingKey === `human-${t.id}`} onClick={() => handleVetoHumanTrade(t.id)} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -132,6 +178,7 @@ export default function LeaguePendingMoves() {
                   <th className="px-3 py-2 font-medium">Offers</th>
                   <th className="px-3 py-2 font-medium">Wants Back</th>
                   <th className="px-3 py-2 font-medium">Value</th>
+                  <th className="px-3 py-2 font-medium"></th>
                 </tr>
               </thead>
               <tbody>
@@ -143,6 +190,9 @@ export default function LeaguePendingMoves() {
                     <td className="px-3 py-2 text-slate-400">{describeAssets(t.requested.players, t.requested.picks)}</td>
                     <td className="px-3 py-2">
                       <TradeValueBar value={t.requestedValue} max={85} colorClass="bg-sky-400" />
+                    </td>
+                    <td className="px-3 py-2">
+                      <VetoButton busy={vetoingKey === `cpu-${t.id}`} onClick={() => handleVetoCpuTargetTrade(t.id)} />
                     </td>
                   </tr>
                 ))}

@@ -29,6 +29,7 @@ const STATUS_STYLES = {
   declined: "bg-red-500/15 text-red-400",
   expired: "bg-red-500/15 text-red-400",
   withdrawn: "bg-slate-500/15 text-slate-400",
+  vetoed: "bg-red-500/15 text-red-400",
 };
 
 const NEED_STYLES = {
@@ -263,6 +264,7 @@ export default function TradeCenter() {
   const [respondingId, setRespondingId] = useState(null);
   const [respondingHumanId, setRespondingHumanId] = useState(null);
   const [withdrawingId, setWithdrawingId] = useState(null);
+  const [withdrawingProposalId, setWithdrawingProposalId] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [resultMessage, setResultMessage] = useState(null);
@@ -461,6 +463,19 @@ export default function TradeCenter() {
       setError(e.message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleWithdrawProposal = async (proposalId) => {
+    setWithdrawingProposalId(proposalId);
+    setError(null);
+    try {
+      await api.withdrawTradeProposal(proposalId);
+      loadProposals();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setWithdrawingProposalId(null);
     }
   };
 
@@ -774,6 +789,7 @@ export default function TradeCenter() {
                 <th className="px-3 py-2 font-medium">You Want</th>
                 <th className="px-3 py-2 font-medium">Value</th>
                 <th className="px-3 py-2 font-medium">Status</th>
+                <th className="px-3 py-2 font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -791,6 +807,18 @@ export default function TradeCenter() {
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[p.status]}`}>
                       {p.status}
                     </span>
+                  </td>
+                  <td className="px-3 py-2">
+                    {p.status === "pending" && (
+                      <button
+                        type="button"
+                        onClick={() => handleWithdrawProposal(p.id)}
+                        disabled={withdrawingProposalId === p.id}
+                        className="rounded-md bg-slate-700 px-2.5 py-1 text-xs font-medium text-white hover:bg-slate-600 disabled:opacity-50"
+                      >
+                        {withdrawingProposalId === p.id ? "Withdrawing…" : "Withdraw"}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

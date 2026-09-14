@@ -1585,11 +1585,13 @@ async function confirmRosterUpdate() {
 function ageCurveRange(age) {
   if (age <= 21) return [2, 5];
   if (age <= 24) return [1, 3];
-  if (age <= 26) return [0, 2];
-  // 27+: growth mostly plateaus, matching potential's own age-27 plateau
-  // (see resolvePotential). This baseline stays near zero on purpose —
-  // performanceModifier (a strong season) is what drives any real movement
-  // from here, rather than the age curve itself pushing a decline.
+  if (age <= 27) return [0, 2];
+  // 28+: baseline flattens to a true zero-mean plateau — no more net growth,
+  // but no baked-in decline either. The actual aging curve from here (slight
+  // decline at 30-34, steep at 35+, both scaled by star rating so a
+  // superstar fades far more slowly than a fringe player) is handled
+  // entirely by the dedicated aging-decline mechanic below rather than
+  // baked into this age-only baseline.
   return [-1, 1];
 }
 
@@ -1602,9 +1604,11 @@ function skaterCategoryBias(category, age, experienceFactor) {
   if (category === "senses" || category === "physical") {
     bias += 1.2 * experienceFactor;
   }
-  if (age >= 28 && category === "skating") {
-    const severity = age >= 33 ? 1.8 : age >= 30 ? 1.2 : 0.6;
-    bias -= severity;
+  // Skating is the first thing to go — a flat, star-blind head start on the
+  // steep-decline stage (35+) on top of the star-scaled aging-decline
+  // mechanic below, since even a superstar's legs age like everyone else's.
+  if (age >= 35 && category === "skating") {
+    bias -= age >= 40 ? 2.2 : 1.3;
   }
   return bias;
 }
@@ -1615,7 +1619,7 @@ function goalieCategoryBias(category, age) {
   let bias = 0;
   if (category === "quickness") {
     if (age <= 26) bias += 1.5;
-    else if (age >= 32) bias -= 1.5;
+    else if (age >= 35) bias -= 1.5;
   }
   if (category === "positioning" && age >= 28) {
     bias += 1.3;
@@ -1639,13 +1643,115 @@ function performanceModifier(player) {
   return clamp(diff * 12, -3, 3);
 }
 
+// Star rating maps to a soft target ceiling that progression trends toward —
+// not a hard cap (see the headroom taper in progressPlayer below), just a
+// continuous anchor so a 5-star prospect and a 3-star prospect starting from
+// the same overall grow at meaningfully different rates. Exact fit through
+// 3/3.5/4/4.5/5-star -> 80/85/90/95/99 (5-star's own math lands at 100,
+// clamped down to the 99 attribute cap), extrapolated with that same slope
+// in both directions rather than hard-coded per-band cutoffs. Confidence
+// adds a further bonus on top — a "safer bet" scouting read means the
+// player is more likely to actually reach the top of their range, not just
+// that the range itself is wide. Yellow gets a modest bump too (was 0);
+// green's raised from +3 so a 4.5-star green player's target now clears 99
+// once clamped, same ceiling a fresh 5-star gets.
+const CONFIDENCE_CEILING_BONUS = { green: 5, yellow: 2, red: 0, white: 0 };
+
+function potentialCeilingTarget(stars, confidence) {
+  return clamp(50 + stars * 10 + (CONFIDENCE_CEILING_BONUS[confidence] ?? 0), 40, 99);
+}
+
+// Confidence color is really "how often does a growth year actually land,"
+// not just a flat trust multiplier the way it's used elsewhere (trade value,
+// contract demand) — a red-confidence prospect can still develop, just less
+// consistently than a green one. Rolled once per growth year in
+// progressPlayer below. "white" (age 27+, see resolvePotential) isn't
+// listed here on purpose: once potential stops being a meaningful read on a
+// player, there's nothing left to gate against, so the roll is skipped
+// entirely rather than guessing a rate for it.
+const POTENTIAL_GROWTH_CHANCE = { green: 0.95, yellow: 0.7, red: 0.4 };
+
+// Once "exact" (white/settled confidence, see resolvePotential), a player's
+// ceiling itself can start eroding — a real athletic decline setting in on
+// top of ordinary year-to-year attribute noise. Career shape has three
+// stages from here: flat through 28-29 (see ageCurveRange's plateau above),
+// a mild stage from 30-34 that a genuine superstar can mostly skate through
+// untouched, then a steep stage at 35+ that catches up with everyone —
+// stars just soften how hard and how often it bites, never exempt a player
+// from it entirely.
+const AGING_MILD_START_AGE = 30;
+const AGING_STEEP_START_AGE = 35;
+// Mild stays probabilistic — a superstar can still have a run of years with
+// no decline event at all. Steep is no longer chance-gated (see
+// agingDeclineRange below): every year at 35+ takes something off, for
+// every star level, per feedback that a 5-star player's steep-stage decline
+// specifically wasn't landing hard enough even after the last sharpening.
+const AGING_MILD_FACTOR = 0.5;
+const POTENTIAL_DECLINE_STEP = 0.5;
+
+function agingTier(age) {
+  if (age >= AGING_STEEP_START_AGE) return "steep";
+  if (age >= AGING_MILD_START_AGE) return "mild";
+  return null;
+}
+
+// Mild-stage only. 5-star: ~5%/yr chance of a ~0.5 OVR pt event.
+// 1-star: ~25%/yr chance of a ~1.9 OVR pt event.
+function agingDeclineChance(stars) {
+  const base = clamp(0.6 - stars * 0.1, 0.1, 0.5);
+  return clamp(base * AGING_MILD_FACTOR, 0.02, 0.85);
+}
+
+function agingDeclineMagnitude(stars) {
+  const base = clamp(4.5 - stars * 0.7, 0.75, 4.5);
+  return Math.max(0.5, base * AGING_MILD_FACTOR);
+}
+
+// Steep-stage only (35+, guaranteed every year — see agingTier). Anchored
+// at "a 5-star player loses 1-3 OVR a year," widening and shifting up as
+// star rating drops so a replacement-level player falls off a cliff by
+// comparison — still softer for stars, never immune.
+function agingDeclineRange(stars) {
+  const min = clamp(7 - stars * 1.2, 1, 7);
+  return [min, min + 2];
+}
+
 // Pure: computes a player's new age/overall/attributes/reset-stats without
 // touching the database, so runProgression can batch the writes afterward.
 function progressPlayer(player) {
   const previousOverall = player.overall;
   const previousAge = player.age;
   const [ageMin, ageMax] = ageCurveRange(player.age);
-  const ageDelta = randInRange(ageMin, ageMax);
+  let ageDelta = randInRange(ageMin, ageMax);
+  let newStars = player.potential.stars;
+
+  if (ageDelta > 0 && player.potential.confidence !== "white") {
+    const chance = POTENTIAL_GROWTH_CHANCE[player.potential.confidence] ?? 0.7;
+    if (Math.random() >= chance) {
+      // Didn't roll a development step this year — confidence is exactly
+      // this: how often a growth year shows up, not how big it is when it
+      // does.
+      ageDelta = 0;
+    } else {
+      // Growth still happens, but eases off the closer overall already is
+      // to this player's star-rating ceiling — real deceleration, not a
+      // hard stop, so a player can still (rarely) outgrow their scouted
+      // potential.
+      const headroom = potentialCeilingTarget(player.potential.stars, player.potential.confidence) - previousOverall;
+      ageDelta *= clamp(0.1 + headroom * 0.045, 0.1, 1);
+    }
+  }
+
+  const tier = agingTier(previousAge);
+  if (tier === "steep") {
+    const [min, max] = agingDeclineRange(newStars);
+    ageDelta -= randInRange(min, max);
+    newStars = clamp(newStars - POTENTIAL_DECLINE_STEP, 0.5, 5);
+  } else if (tier === "mild" && Math.random() < agingDeclineChance(newStars)) {
+    ageDelta -= agingDeclineMagnitude(newStars);
+    newStars = clamp(newStars - POTENTIAL_DECLINE_STEP, 0.5, 5);
+  }
+
   const perfDelta = performanceModifier(player);
   const totalDelta = clamp(ageDelta + perfDelta, -8, 8);
   const newAge = player.age + 1;
@@ -1683,7 +1789,21 @@ function progressPlayer(player) {
     attributeDeltas[attr] = newVal - oldVal;
     newAttributes[attr] = newVal;
   });
-  const newOverall = Math.round(mean(attrList.map((attr) => newAttributes[attr])));
+  // Nudges the *previous* overall by however much attributes moved on
+  // average, rather than recomputing overall from scratch as a flat mean of
+  // all 25 attributes every year. A real player's stored overall (imported
+  // rosters especially — see importOgHflRosters.js) comes from the actual
+  // NHL 27 game's own position-weighted formula, which routinely disagrees
+  // with a flat unweighted mean (a winger's real overall discounts
+  // faceoffs/fighting/checking far more than an even split would). Recomputing
+  // from a flat mean every year snapped every real-roster player's rating
+  // down (or up) to that mismatched baseline on their very first progression
+  // pass, showing up as a "quick drop" the very first year even for players
+  // in a flat/no-decline age bracket. Delta-based movement never re-derives
+  // the baseline, so whatever formula produced the starting overall stays
+  // authoritative — only the actual year's movement gets applied.
+  const meanAttrDelta = mean(attrList.map((attr) => attributeDeltas[attr]));
+  const newOverall = clamp(Math.round(previousOverall + meanAttrDelta), 25, 99);
 
   return {
     playerId: player.id,
@@ -1697,6 +1817,8 @@ function progressPlayer(player) {
     ovrDelta: newOverall - previousOverall,
     attributeDeltas,
     attributes: newAttributes,
+    previousPotential: player.potential,
+    potential: { stars: newStars, confidence: player.potential.confidence },
     resetStats,
   };
 }
@@ -1716,13 +1838,10 @@ async function runProgression() {
 
   await withTransaction(async (client) => {
     for (const r of results) {
-      await client.query("UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4 WHERE id = $5", [
-        r.newAge,
-        r.newOverall,
-        JSON.stringify(r.attributes),
-        JSON.stringify(r.resetStats),
-        r.playerId,
-      ]);
+      await client.query(
+        "UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4, potential = $5 WHERE id = $6",
+        [r.newAge, r.newOverall, JSON.stringify(r.attributes), JSON.stringify(r.resetStats), JSON.stringify(r.potential), r.playerId]
+      );
     }
     if (flaggedIds.length > 0) {
       await client.query(
@@ -3667,6 +3786,30 @@ async function withdrawHumanTradeOffer({ teamId, offerId }) {
   return { status: "withdrawn" };
 }
 
+// Commissioner override for a still-pending human-vs-human offer — killed
+// before the target team can accept it, e.g. a collusive or rule-breaking
+// trade NHL 27 itself has no way to block. Recorded as a league-visible
+// transaction (see getLeagueTransactions) so every GM can see it happened.
+async function vetoHumanTradeOffer({ offerId }) {
+  const { rows } = await pool.query("SELECT * FROM human_trade_offers WHERE id = $1", [offerId]);
+  if (rows.length === 0) throw notFound(`Offer ${offerId} not found`);
+  const offer = rows[0];
+  if (offer.status !== "pending") throw badRequest("This offer has already been resolved");
+
+  const [teamsById, players, picks] = await Promise.all([getTeamsById(), getPlayers(), getDraftPicks()]);
+  const playersById = new Map(players.map((p) => [p.id, p]));
+  const picksById = new Map(picks.map((p) => [p.id, p]));
+  const targetAbbr = teamsById.get(offer.target_team_id)?.abbr ?? "the other team";
+
+  await pool.query("UPDATE human_trade_offers SET status = 'vetoed' WHERE id = $1", [offerId]);
+  await createNotification(
+    offer.proposing_team_id,
+    `Commissioner vetoed the trade offer to ${targetAbbr} (offered ${describeAssetNames(offer.offered_player_ids, offer.offered_pick_ids, playersById, picksById)} for ${describeAssetNames(offer.requested_player_ids, offer.requested_pick_ids, playersById, picksById)}).`,
+    "failure"
+  );
+  return { status: "vetoed" };
+}
+
 // --- CPU-targeted trade proposals (trade_period / post_playoff_trade) ---
 //
 // Only for trades where the other side is a CPU-controlled team — the
@@ -3795,6 +3938,19 @@ async function getTradeProposals(teamId) {
       status: r.status,
     };
   });
+}
+
+// Lets the proposing team pull back its own pending proposal before the
+// round resolves it — same reasoning as withdrawHumanTradeOffer, for the
+// CPU-targeted side of the Trade Center.
+async function withdrawTradeProposal({ teamId, proposalId }) {
+  const { rows } = await pool.query("SELECT * FROM trade_proposals WHERE id = $1", [proposalId]);
+  if (rows.length === 0) throw notFound(`Proposal ${proposalId} not found`);
+  const proposal = rows[0];
+  if (proposal.proposing_team_id !== teamId) throw badRequest("This isn't your proposal to withdraw");
+  if (proposal.status !== "pending") throw badRequest("This proposal has already been resolved");
+  await pool.query("UPDATE trade_proposals SET status = 'withdrawn' WHERE id = $1", [proposalId]);
+  return { status: "withdrawn" };
 }
 
 // Confirms every asset on both sides of a pending proposal still belongs to
@@ -3942,6 +4098,30 @@ async function resolveTradeProposals(seasonNumber, round, phase) {
   });
 
   return { executed };
+}
+
+// Commissioner override: kills a still-pending human->CPU proposal before it
+// can resolve at round end, e.g. to stop a trade that violates a league
+// rule NHL 27 itself has no way to enforce. Recorded as a league-visible
+// transaction (see getLeagueTransactions) so every GM can see it happened.
+async function vetoTradeProposal({ proposalId }) {
+  const { rows } = await pool.query("SELECT * FROM trade_proposals WHERE id = $1", [proposalId]);
+  if (rows.length === 0) throw notFound(`Proposal ${proposalId} not found`);
+  const proposal = rows[0];
+  if (proposal.status !== "pending") throw badRequest("This proposal has already been resolved");
+
+  const [teamsById, players, picks] = await Promise.all([getTeamsById(), getPlayers(), getDraftPicks()]);
+  const playersById = new Map(players.map((p) => [p.id, p]));
+  const picksById = new Map(picks.map((p) => [p.id, p]));
+  const targetAbbr = teamsById.get(proposal.target_team_id)?.abbr ?? "the other team";
+
+  await pool.query("UPDATE trade_proposals SET status = 'vetoed' WHERE id = $1", [proposalId]);
+  await createNotification(
+    proposal.proposing_team_id,
+    `Commissioner vetoed the trade proposal to ${targetAbbr} (offered ${describeAssetNames(proposal.offered_player_ids, proposal.offered_pick_ids, playersById, picksById)} for ${describeAssetNames(proposal.requested_player_ids, proposal.requested_pick_ids, playersById, picksById)}).`,
+    "failure"
+  );
+  return { status: "vetoed" };
 }
 
 // --- CPU-initiated trade offers (the reverse direction) ---
@@ -4403,6 +4583,7 @@ async function getLeagueWidePendingMoves() {
   const cpuTargetTrades = (await getTradeProposals(null))
     .filter((p) => p.status === "pending")
     .map((p) => ({
+      id: p.id,
       proposingTeam: p.proposingTeam,
       targetTeam: p.targetTeam,
       offered: { players: p.offeredPlayers, picks: p.offeredPicks },
@@ -4414,6 +4595,7 @@ async function getLeagueWidePendingMoves() {
     "SELECT * FROM human_trade_offers WHERE status = 'pending' ORDER BY id"
   );
   const humanTrades = humanOfferRows.map((r) => ({
+    id: r.id,
     proposingTeam: teamsById.get(r.proposing_team_id),
     targetTeam: teamsById.get(r.target_team_id),
     offered: describeTradeOfferAssets(r.offered_player_ids, r.offered_pick_ids, playersById, picksById),
@@ -4482,8 +4664,11 @@ module.exports = {
   getHumanTradeOffers,
   respondToHumanTradeOffer,
   withdrawHumanTradeOffer,
+  vetoHumanTradeOffer,
   submitTradeProposal,
   getTradeProposals,
+  withdrawTradeProposal,
+  vetoTradeProposal,
   getPendingMoves,
   getLeagueWidePendingMoves,
   getNotifications,

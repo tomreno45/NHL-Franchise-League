@@ -504,12 +504,21 @@ const requireTeam = asyncRoute(async (req, res, next) => {
 // overriding the draft order, regenerating the draft class). A normal GM
 // account can still see all the read-only state these actions affect —
 // this only blocks the mutations.
-function requireCommissioner(req, res, next) {
-  if (req.session.role !== "commissioner") {
+//
+// Looks up the CURRENT membership fresh rather than trusting
+// req.session.role — same staleness bug requireTeam had above: a role
+// granted/changed after login/select-league would otherwise leave that
+// session stuck with its old permission level until a fresh login re-runs
+// select-league. Also refreshes the session's own cached copy so it
+// self-heals instead of re-querying every request after the first one.
+const requireCommissioner = asyncRoute(async (req, res, next) => {
+  const membership = await accounts.getMembership(req.session.accountId, req.session.leagueSlug);
+  if (!membership || membership.role !== "commissioner") {
     return res.status(403).json({ error: "Commissioner only" });
   }
+  req.session.role = membership.role;
   next();
-}
+});
 
 // Web Push (browser notifications) — subscribe/unsubscribe are per-login,
 // not per-team, since a commissioner-only account (no team) can still want
@@ -1231,6 +1240,16 @@ app.post(
   })
 );
 
+// Lets the proposing team cancel its own still-pending proposal before the
+// round resolves it.
+app.post(
+  "/api/traderounds/proposals/:id/withdraw",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    res.json(await store.withdrawTradeProposal({ teamId: req.teamId, proposalId: Number(req.params.id) }));
+  })
+);
+
 // Evaluates a two-team offer (up to 5 players/picks per side) without
 // changing anything — trade value comparison plus each side's likelihood of
 // accepting, worded rather than shown as a raw number.
@@ -1301,6 +1320,27 @@ app.post(
   requireTeam,
   asyncRoute(async (req, res) => {
     res.json(await store.withdrawHumanTradeOffer({ teamId: req.teamId, offerId: Number(req.params.id) }));
+  })
+);
+
+// Commissioner-only: kills a still-pending human-vs-human offer before the
+// target team can accept it. Surfaced via LeaguePendingMoves, not the
+// individual GM's own Trade Center.
+app.post(
+  "/api/commissioner/trades/human-offers/:id/veto",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await store.vetoHumanTradeOffer({ offerId: Number(req.params.id) }));
+  })
+);
+
+// Commissioner-only: kills a still-pending human->CPU proposal before it
+// resolves at round end.
+app.post(
+  "/api/commissioner/trades/proposals/:id/veto",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await store.vetoTradeProposal({ proposalId: Number(req.params.id) }));
   })
 );
 

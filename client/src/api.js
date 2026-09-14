@@ -66,6 +66,7 @@ export const api = {
   signDraftRights: (payload) => send("POST", "/resigning/sign-draft-rights", payload),
   getTradeProposals: (teamId) => get(`/traderounds/proposals${teamId ? `?teamId=${teamId}` : ""}`),
   submitTradeProposal: (payload) => send("POST", "/traderounds/proposals", payload),
+  withdrawTradeProposal: (proposalId) => send("POST", `/traderounds/proposals/${proposalId}/withdraw`, {}),
   getCpuTradeOffers: () => get("/traderounds/cpu-offers"),
   respondToCpuTradeOffer: (offerId, accept) => send("POST", `/traderounds/cpu-offers/${offerId}/respond`, { accept }),
   getPendingMoves: (teamId) => get(`/mygm/pending-moves?teamId=${teamId}`),
@@ -105,4 +106,6 @@ export const api = {
   getHumanTradeOffers: () => get("/trades/human-offers"),
   respondToHumanTradeOffer: (offerId, accept) => send("POST", `/trades/human-offers/${offerId}/respond`, { accept }),
   withdrawHumanTradeOffer: (offerId) => send("POST", `/trades/human-offers/${offerId}/withdraw`, {}),
+  vetoHumanTradeOffer: (offerId) => send("POST", `/commissioner/trades/human-offers/${offerId}/veto`, {}),
+  vetoTradeProposal: (proposalId) => send("POST", `/commissioner/trades/proposals/${proposalId}/veto`, {}),
 };
