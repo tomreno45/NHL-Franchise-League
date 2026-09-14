@@ -357,6 +357,7 @@ function mapPlayerRow(row) {
     contractYearsLeft: row.contract_years_left,
     inGameStatus: row.in_game_status,
     lineupSlot: row.roster_assignment,
+    nhl27TeamId: row.nhl27_team_id,
     draftedSeasonNumber: row.drafted_season_number,
     rightsOnly: row.rights_only,
     attributes: row.attributes,
@@ -1541,6 +1542,47 @@ async function getRosterChanges() {
     }));
 }
 
+// The commissioner's league-wide, team-by-team view of real team changes
+// (trades, free agent signings, releases) not yet applied in NHL 27 — see
+// nhl27_team_id in schema.sql. Every human team gets two lists: who needs
+// to be ADDED to their in-game roster (their current team_id is this team,
+// but NHL 27 still has them somewhere else or nowhere) and who needs to be
+// REMOVED (NHL 27 still has them here, but they've since moved on). "Old
+// Team"/"New Team" reference nhl27_team_id/team_id respectively, not
+// necessarily each other's most recent app-side team — a CPU-to-CPU trade
+// nobody's confirmed just leaves nhl27_team_id pointing further back, same
+// as NHL 27's own unmanaged CPU rosters would.
+async function getRosterMoveSync() {
+  const [teams, players] = await Promise.all([getTeams(), getPlayers()]);
+  const teamsById = new Map(teams.map((t) => [t.id, t]));
+  const describe = (p) => ({ id: p.id, name: p.name, position: p.position, overall: p.overall });
+
+  return teams
+    .filter((t) => t.isHumanControlled)
+    .map((team) => ({
+      team,
+      moveOnto: players
+        .filter((p) => p.teamId === team.id && p.nhl27TeamId !== team.id)
+        .map((p) => ({ ...describe(p), oldTeam: teamsById.get(p.nhl27TeamId) ?? null })),
+      moveOff: players
+        .filter((p) => p.nhl27TeamId === team.id && p.teamId !== team.id)
+        .map((p) => ({ ...describe(p), newTeam: teamsById.get(p.teamId) ?? null })),
+    }));
+}
+
+// Marks every move touching one team (arrivals and departures alike) as
+// applied — a bulk per-team clear, same simplicity as every other
+// "everything below is now applied" action in this file, rather than a
+// per-player toggle. One simplification worth knowing: clearing team A's
+// departures also fully resolves those players' nhl27_team_id to their new
+// team B, even if B hasn't separately confirmed adding them yet — treating
+// "removed from A" and "added to B" as one step rather than two independent
+// ones a real league this size shouldn't need to track separately.
+async function clearRosterMoveSync(teamId) {
+  await pool.query("UPDATE players SET nhl27_team_id = team_id WHERE team_id = $1 OR nhl27_team_id = $1", [teamId]);
+  return getRosterMoveSync();
+}
+
 // Flattened rows behind the Progression tab's "Download Excel" buttons —
 // same in_game_status split and human-teams-only scope as getRosterChanges
 // above, but with the full attribute set attached (not just id/name/
@@ -1577,6 +1619,7 @@ async function getRosterSyncExport(status) {
 // actually final.
 async function confirmRosterUpdate() {
   await pool.query("UPDATE players SET in_game_status = 'active' WHERE in_game_status IN ('needs_update', 'not_created')");
+  await pool.query("UPDATE players SET nhl27_team_id = team_id WHERE nhl27_team_id IS DISTINCT FROM team_id");
   return generateSeasonSchedule();
 }
 
@@ -4643,6 +4686,8 @@ module.exports = {
   assignLineupSlot,
   autoSetLineup,
   getRosterChanges,
+  getRosterMoveSync,
+  clearRosterMoveSync,
   getRosterSyncExport,
   runProgression,
   getLatestProgression,

@@ -57,6 +57,27 @@ ALTER TABLE players ADD COLUMN IF NOT EXISTS drafted_season_number INTEGER;
 -- transient instant right before release.
 ALTER TABLE players ADD COLUMN IF NOT EXISTS rights_only BOOLEAN NOT NULL DEFAULT false;
 
+-- Superseded by nhl27_team_id below before ever shipping — the Roster
+-- Moves tab turned out to need "which team is this player really on in
+-- NHL 27," not "has their lineup slot changed," so this never had real data
+-- worth preserving.
+ALTER TABLE players DROP COLUMN IF EXISTS roster_assignment_synced;
+
+-- The team NHL 27's actual roster currently has this player on — lags
+-- behind team_id until the commissioner confirms a move was applied (see
+-- store.js's clearRosterMoveSync). Every trade, signing, or release leaves
+-- this column untouched on its own; a chain of CPU-to-CPU moves nobody's
+-- confirmed just keeps pointing at whichever team last had them for real,
+-- matching NHL 27's own unmanaged CPU rosters. NULL means "not on any real
+-- NHL 27 roster yet" — a fresh rookie, or someone released and not
+-- re-signed. New players (draft picks) start NULL on purpose; everyone
+-- already in the database when this column was introduced needs a one-time
+-- backfill instead (see scripts/backfillNhl27TeamId.js) — unlike every
+-- other ADD COLUMN in this file, defaulting existing rows to their current
+-- team_id isn't safe to redo on every restart, since a real pending move
+-- would get silently erased the next time the server reboots.
+ALTER TABLE players ADD COLUMN IF NOT EXISTS nhl27_team_id INTEGER REFERENCES teams(id);
+
 CREATE TABLE IF NOT EXISTS games (
   id INTEGER PRIMARY KEY,
   date DATE NOT NULL,

@@ -762,6 +762,27 @@ app.get(
   })
 );
 
+// Team-by-team active/minors/scratch moves that haven't been applied in
+// NHL 27 yet — the lineup-placement counterpart to roster-changes above
+// (which is about card ratings, not who's dressing). Commissioner-gated
+// like getLeagueWidePendingMoves below: it's every human team's data at
+// once, not just the requester's own.
+app.get(
+  "/api/commissioner/roster-moves",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await store.getRosterMoveSync());
+  })
+);
+
+app.post(
+  "/api/commissioner/roster-moves/:teamId/clear",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await store.clearRosterMoveSync(Number(req.params.teamId)));
+  })
+);
+
 // Everything currently in motion across every human team — free agent
 // bids, re-sign offers, and pending trades (both to other humans and to
 // CPU teams) for the live round. No privacy scoping, unlike the per-team

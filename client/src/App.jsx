@@ -26,6 +26,7 @@ import SetRoster from "./components/SetRoster";
 import RosterMoves from "./components/RosterMoves";
 import Resigning from "./components/Resigning";
 import Commissioner from "./components/Commissioner";
+import CommissionerRosterMoves from "./components/CommissionerRosterMoves";
 import UserList from "./components/UserList";
 import PendingMoves from "./components/PendingMoves";
 import Notifications from "./components/Notifications";
@@ -70,7 +71,6 @@ const GROUPS = [
       { key: "rosters", label: "Rosters", Component: LeagueRosters },
       { key: "schedule", label: "Schedule", Component: Schedule },
       { key: "scorers", label: "Stats", Component: ScoringLeaders },
-      { key: "progression", label: "Progression", Component: Progression },
       { key: "leaguetransactions", label: "Transactions", Component: LeagueTransactions },
     ],
   },
@@ -81,7 +81,20 @@ const GROUPS = [
       { key: "pendingmoves", label: "Pending Moves", Component: PendingMoves },
       { key: "notifications", label: "Notifications", Component: Notifications },
       { key: "userlist", label: "User List", Component: UserList },
-      { key: "commissioner", label: "Commissioner", Component: Commissioner },
+    ],
+  },
+  {
+    // Commissioner-only group — filtered out of `groups` entirely below for
+    // anyone else, same reasoning as the old mygm-only "commissioner" tab
+    // this replaced: every action and most of the read-only data here is
+    // already league-wide/privileged on the backend (see server.js's
+    // requireCommissioner), so there's nothing for a normal GM to see here.
+    key: "commissioner",
+    label: "Commissioner",
+    tabs: [
+      { key: "commissionerdashboard", label: "Dashboard", Component: Commissioner },
+      { key: "progression", label: "Progression", Component: Progression },
+      { key: "commissionerrostermoves", label: "Roster Moves", Component: CommissionerRosterMoves },
     ],
   },
 ];
@@ -93,18 +106,13 @@ function AppShell() {
   const { phase } = useLeaguePhase();
   const { unreadCount } = useNotifications();
 
-  // The Commissioner tab performs league-wide actions (advance date, crown
-  // champion, override draft order, regenerate draft class) the backend
-  // already restricts to the commissioner role (see server.js's
-  // requireCommissioner) — dropped from the nav entirely for anyone else
-  // rather than shown and just erroring on every click.
+  // The Commissioner group performs league-wide actions (advance date,
+  // crown champion, override draft order, regenerate draft class, veto a
+  // trade) the backend already restricts to the commissioner role (see
+  // server.js's requireCommissioner) — dropped from the nav entirely for
+  // anyone else rather than shown and just erroring on every click.
   const groups = useMemo(
-    () =>
-      GROUPS.map((g) =>
-        g.key === "mygm" && user.role !== "commissioner"
-          ? { ...g, tabs: g.tabs.filter((t) => t.key !== "commissioner") }
-          : g
-      ),
+    () => (user.role === "commissioner" ? GROUPS : GROUPS.filter((g) => g.key !== "commissioner")),
     [user.role]
   );
 
