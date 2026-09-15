@@ -1478,11 +1478,14 @@ async function assignLineupSlot({ teamId, playerId, targetSlot }) {
 // G1/G2, best 6 defensemen to the 3 pairs, best 12 forwards to the 4 lines
 // (matched to each slot's natural LW/C/RW label where enough depth exists at
 // that position, falling back to next-best-overall-forward-of-any-position
-// otherwise), then the next-best 5 skaters to SCRATCH. Everyone else is left
-// at whatever they already had (MINORS by default). Used to give a brand
-// new league a real lineup on day one instead of an all-MINORS empty grid —
-// not exposed as a user action, since editing from there is what the Set
-// Lineup tab is for.
+// otherwise), then the next-best 5 skaters to SCRATCH. Everyone else goes to
+// MINORS. Originally just used to give a brand new league a real lineup on
+// day one instead of an all-MINORS empty grid; now also the "Best Lineup"
+// button on Set Lineup, so it has to be safe to re-run on an already-active
+// roster too — anyone who doesn't make the cut this time gets sent down
+// explicitly rather than left at whatever slot they happened to occupy
+// before, which would otherwise leave two players pointing at the same slot
+// the moment a new arrival bumps someone who was previously dressed.
 async function autoSetLineup(teamId) {
   const players = await getPlayersByTeam(teamId);
   const byOverallDesc = (a, b) => b.overall - a.overall;
@@ -1521,11 +1524,21 @@ async function autoSetLineup(teamId) {
     .slice(0, MAX_SCRATCHES)
     .forEach((p) => assign(p, SCRATCH_SLOT));
 
+  // Anyone not selected for a line/scratch this pass gets sent down —
+  // matters once this runs more than once on an already-active roster (a
+  // trade upgrades a position, say): without this, a bumped player's stale
+  // old slot value would stick around unchanged.
+  const displacedIds = players.filter((p) => !used.has(p.id) && p.lineupSlot !== MINORS_SLOT).map((p) => p.id);
+
   await withTransaction(async (client) => {
     for (const u of updates) {
       await client.query("UPDATE players SET roster_assignment = $1 WHERE id = $2", [u.slot, u.id]);
     }
+    if (displacedIds.length > 0) {
+      await client.query("UPDATE players SET roster_assignment = $1 WHERE id = ANY($2)", [MINORS_SLOT, displacedIds]);
+    }
   });
+  return getPlayersByTeam(teamId);
 }
 
 // Only human teams matter here — CPU rosters are never synced into NHL 27,
@@ -1555,7 +1568,10 @@ async function getRosterChanges() {
 async function getRosterMoveSync() {
   const [teams, players] = await Promise.all([getTeams(), getPlayers()]);
   const teamsById = new Map(teams.map((t) => [t.id, t]));
-  const describe = (p) => ({ id: p.id, name: p.name, position: p.position, overall: p.overall });
+  // lineupSlot included so the commissioner can see at a glance whether a
+  // move is even worth bothering with in NHL 27 — a player buried in the
+  // minors isn't going to show up on a real broadcast roster either way.
+  const describe = (p) => ({ id: p.id, name: p.name, position: p.position, overall: p.overall, lineupSlot: p.lineupSlot });
 
   return teams
     .filter((t) => t.isHumanControlled)
@@ -1570,16 +1586,17 @@ async function getRosterMoveSync() {
     }));
 }
 
-// Marks every move touching one team (arrivals and departures alike) as
-// applied — a bulk per-team clear, same simplicity as every other
-// "everything below is now applied" action in this file, rather than a
-// per-player toggle. One simplification worth knowing: clearing team A's
-// departures also fully resolves those players' nhl27_team_id to their new
-// team B, even if B hasn't separately confirmed adding them yet — treating
-// "removed from A" and "added to B" as one step rather than two independent
-// ones a real league this size shouldn't need to track separately.
-async function clearRosterMoveSync(teamId) {
-  await pool.query("UPDATE players SET nhl27_team_id = team_id WHERE team_id = $1 OR nhl27_team_id = $1", [teamId]);
+// Marks specific players' moves as applied — granular per player rather
+// than forcing a whole team at once, since a player who won't be sticking
+// around long (about to get flipped again, or a minor-league stash never
+// really dressing) isn't worth actually touching in NHL 27 at all. Leaving
+// one unchecked just means it stays pending for next time — there's no
+// separate "ignore forever" state, since a player who moves on again before
+// anyone applies this one just gets folded into that next move instead.
+async function clearRosterMoveSync(playerIds) {
+  if (playerIds.length > 0) {
+    await pool.query("UPDATE players SET nhl27_team_id = team_id WHERE id = ANY($1)", [playerIds]);
+  }
   return getRosterMoveSync();
 }
 

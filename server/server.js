@@ -751,6 +751,17 @@ app.post(
   })
 );
 
+// Rebuilds this team's active lineup by overall — the "Best Lineup" button
+// on Set Lineup. Safe to hit repeatedly on an already-active roster (see
+// store.js's autoSetLineup).
+app.post(
+  "/api/lineup/auto-set",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    res.json(await store.autoSetLineup(req.teamId));
+  })
+);
+
 // Players (per human team) whose NHL 27 card is out of date and needs the
 // commissioner to apply the change in-console. Clearing this list and
 // generating the season's schedule both happen automatically when the
@@ -762,11 +773,12 @@ app.get(
   })
 );
 
-// Team-by-team active/minors/scratch moves that haven't been applied in
-// NHL 27 yet — the lineup-placement counterpart to roster-changes above
-// (which is about card ratings, not who's dressing). Commissioner-gated
-// like getLeagueWidePendingMoves below: it's every human team's data at
-// once, not just the requester's own.
+// Team-by-team players who've changed teams (trades, signings, releases)
+// but haven't been added to or removed from their NHL 27 roster yet — the
+// team-change counterpart to roster-changes above (which is about card
+// ratings, not which roster someone's on). Commissioner-gated like
+// getLeagueWidePendingMoves below: it's every human team's data at once,
+// not just the requester's own.
 app.get(
   "/api/commissioner/roster-moves",
   requireCommissioner,
@@ -776,10 +788,11 @@ app.get(
 );
 
 app.post(
-  "/api/commissioner/roster-moves/:teamId/clear",
+  "/api/commissioner/roster-moves/clear",
   requireCommissioner,
   asyncRoute(async (req, res) => {
-    res.json(await store.clearRosterMoveSync(Number(req.params.teamId)));
+    const { playerIds } = req.body;
+    res.json(await store.clearRosterMoveSync((playerIds || []).map(Number)));
   })
 );
 

@@ -60,6 +60,7 @@ export default function SetRoster() {
   const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [autoSetting, setAutoSetting] = useState(false);
 
   const reload = () => {
     if (myTeamId == null) return;
@@ -97,6 +98,20 @@ export default function SetRoster() {
     }
   };
 
+  const handleAutoSet = async () => {
+    setAutoSetting(true);
+    setError(null);
+    setSelectedId(null);
+    try {
+      await api.autoSetLineup(myTeamId);
+      reload();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setAutoSetting(false);
+    }
+  };
+
   if (myTeamId == null || !roster || !slotsMeta) return <p className="text-slate-400">Loading roster…</p>;
 
   const myTeam = teams.find((t) => t.id === myTeamId);
@@ -119,10 +134,21 @@ export default function SetRoster() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="mb-1 text-lg font-semibold text-slate-100">{myTeam ? `${myTeam.city} ${myTeam.name}` : ""}</h2>
+          <div className="mb-1 flex flex-wrap items-center gap-3">
+            <h2 className="text-lg font-semibold text-slate-100">{myTeam ? `${myTeam.city} ${myTeam.name}` : ""}</h2>
+            <button
+              type="button"
+              onClick={handleAutoSet}
+              disabled={autoSetting}
+              className="rounded-md bg-sky-600 px-3 py-1 text-xs font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+            >
+              {autoSetting ? "Setting…" : "Best Lineup"}
+            </button>
+          </div>
           <span className="text-sm text-slate-500">
             Click a player, then click another player or an empty slot to move them between lines and scratches. Head
-            to Roster Moves to call players up from the minors or send them down.
+            to Roster Moves to call players up from the minors or send them down. Best Lineup fills every line and
+            scratch slot by overall, sending anyone who doesn't make the cut to the minors.
           </span>
         </div>
         <div className="flex gap-4 text-xs text-slate-400">
