@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 
-function buildSlotHelpers(slotsMeta) {
-  const orderBySlot = new Map(slotsMeta.slots.map((s, i) => [s.slot, i]));
-  orderBySlot.set(slotsMeta.scratchSlot, slotsMeta.slots.length); // scratches sort after every real slot
-
+function buildSlotLabeler(slotsMeta) {
   const labelBySlot = new Map(
     slotsMeta.slots.map((s) => [
       s.slot,
@@ -13,16 +10,13 @@ function buildSlotHelpers(slotsMeta) {
   );
   labelBySlot.set(slotsMeta.scratchSlot, "Scratched");
 
-  return {
-    order: (slot) => orderBySlot.get(slot) ?? Number.MAX_SAFE_INTEGER,
-    label: (slot) => labelBySlot.get(slot) ?? slot,
-  };
+  return (slot) => labelBySlot.get(slot) ?? slot;
 }
 
 export default function CommissionerTeamRosters() {
   const [teams, setTeams] = useState(null);
   const [rostersByTeam, setRostersByTeam] = useState(null);
-  const [slotHelpers, setSlotHelpers] = useState(null);
+  const [slotLabel, setSlotLabel] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -30,7 +24,7 @@ export default function CommissionerTeamRosters() {
       .then(async ([allTeams, slotsMeta]) => {
         const humanTeams = allTeams.filter((t) => t.isHumanControlled);
         setTeams(humanTeams);
-        setSlotHelpers(buildSlotHelpers(slotsMeta));
+        setSlotLabel(() => buildSlotLabeler(slotsMeta));
 
         const rosters = await Promise.all(humanTeams.map((t) => api.getRoster(t.id)));
         const byTeam = new Map(humanTeams.map((t, i) => [t.id, rosters[i].roster]));
@@ -40,7 +34,7 @@ export default function CommissionerTeamRosters() {
   }, []);
 
   if (error) return <p className="text-red-500">{error}</p>;
-  if (!teams || !rostersByTeam || !slotHelpers) return <p className="text-slate-400">Loading rosters…</p>;
+  if (!teams || !rostersByTeam || !slotLabel) return <p className="text-slate-400">Loading rosters…</p>;
 
   return (
     <div>
@@ -53,7 +47,7 @@ export default function CommissionerTeamRosters() {
         {teams.map((team) => {
           const roster = (rostersByTeam.get(team.id) ?? [])
             .filter((p) => p.lineupSlot !== "MINORS")
-            .sort((a, b) => slotHelpers.order(a.lineupSlot) - slotHelpers.order(b.lineupSlot));
+            .sort((a, b) => b.overall - a.overall);
 
           return (
             <div key={team.id} className="rounded-lg bg-slate-900 p-4">
@@ -82,7 +76,7 @@ export default function CommissionerTeamRosters() {
                             p.lineupSlot === "SCRATCH" ? "text-amber-400" : "text-slate-300"
                           }`}
                         >
-                          {slotHelpers.label(p.lineupSlot)}
+                          {slotLabel(p.lineupSlot)}
                         </td>
                       </tr>
                     ))}
