@@ -57,6 +57,13 @@ ALTER TABLE players ADD COLUMN IF NOT EXISTS drafted_season_number INTEGER;
 -- transient instant right before release.
 ALTER TABLE players ADD COLUMN IF NOT EXISTS rights_only BOOLEAN NOT NULL DEFAULT false;
 
+-- Full country name (e.g. "Canada", "Sweden"), sourced from the NHL's own
+-- public player-search API by name+team match — see
+-- scripts/addNationalities.js. NULL for anyone that script couldn't
+-- confidently match (a fictional/generated player, or a real prospect not
+-- yet in the NHL's index) rather than ever guessing.
+ALTER TABLE players ADD COLUMN IF NOT EXISTS nationality TEXT;
+
 -- Superseded by nhl27_team_id below before ever shipping — the Roster
 -- Moves tab turned out to need "which team is this player really on in
 -- NHL 27," not "has their lineup slot changed," so this never had real data

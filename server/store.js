@@ -357,6 +357,7 @@ function mapPlayerRow(row) {
     contractYearsLeft: row.contract_years_left,
     inGameStatus: row.in_game_status,
     lineupSlot: row.roster_assignment,
+    nationality: row.nationality,
     nhl27TeamId: row.nhl27_team_id,
     draftedSeasonNumber: row.drafted_season_number,
     rightsOnly: row.rights_only,
