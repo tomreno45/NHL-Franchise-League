@@ -644,8 +644,9 @@ app.get(
   })
 );
 
-// Games awaiting a score, i.e. human_vs_human matchups that were supposed to
-// be played on console by now but haven't been reported back yet.
+// Games awaiting a score, i.e. every human_vs_human matchup that hasn't been
+// reported back yet — during the regular season any of them can be entered
+// at any time, not only ones whose scheduled date the league has reached.
 app.get(
   "/api/games/pending",
   asyncRoute(async (req, res) => {

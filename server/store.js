@@ -393,14 +393,20 @@ function gameType(game, teamsById) {
   return "human_vs_cpu";
 }
 
-function enrichGame(game, teamsById, leagueDate) {
+// `scoringOpen` is whether the league is in the regular season (see
+// getScoringOpen) — a console game can be reported any time then, not just
+// once the league's simmed date has caught up to its scheduled day. The
+// players are playing these on their own consoles on their own schedule, so
+// there's no reason a GM who's already played their game 20 days "ahead" of
+// the sim has to sit on the result.
+function enrichGame(game, teamsById, scoringOpen) {
   const type = gameType(game, teamsById);
   return {
     ...game,
     homeTeam: teamsById.get(game.homeTeamId),
     awayTeam: teamsById.get(game.awayTeamId),
     gameType: type,
-    needsScore: game.status === "scheduled" && game.date <= leagueDate && type === "human_vs_human",
+    needsScore: game.status === "scheduled" && scoringOpen && type === "human_vs_human",
   };
 }
 
@@ -416,6 +422,11 @@ async function getTeamsById() {
 async function getLeagueDate() {
   const { rows } = await pool.query("SELECT league_date FROM league_state WHERE id = 1");
   return rows[0].league_date;
+}
+
+async function getScoringOpen() {
+  const { rows } = await pool.query("SELECT phase FROM league_state WHERE id = 1");
+  return rows[0].phase === "regular_season";
 }
 
 async function getPlayers() {
@@ -477,7 +488,7 @@ async function getScorers({ teamId } = {}) {
 }
 
 async function getGames({ teamId } = {}) {
-  const [teamsById, leagueDate] = await Promise.all([getTeamsById(), getLeagueDate()]);
+  const [teamsById, scoringOpen] = await Promise.all([getTeamsById(), getScoringOpen()]);
 
   let text = "SELECT * FROM games";
   const params = [];
@@ -488,7 +499,7 @@ async function getGames({ teamId } = {}) {
   text += " ORDER BY date";
 
   const { rows } = await pool.query(text, params);
-  return rows.map(mapGameRow).map((g) => enrichGame(g, teamsById, leagueDate));
+  return rows.map(mapGameRow).map((g) => enrichGame(g, teamsById, scoringOpen));
 }
 
 async function getPendingHumanGames() {
@@ -689,9 +700,9 @@ async function submitScore(gameId, { wentToOT, home, away }) {
       [homeScore, awayScore, Boolean(wentToOT), JSON.stringify(boxScore), id]
     );
 
-    const leagueDate = await getLeagueDate();
+    const scoringOpen = await getScoringOpen();
     const updated = await client.query("SELECT * FROM games WHERE id = $1", [id]);
-    return enrichGame(mapGameRow(updated.rows[0]), teamsById, leagueDate);
+    return enrichGame(mapGameRow(updated.rows[0]), teamsById, scoringOpen);
   });
 }
 
@@ -950,9 +961,9 @@ async function simulateGame(gameId) {
       [homeGoals, awayGoals, wentToOT, id]
     );
 
-    const leagueDate = await getLeagueDate();
+    const scoringOpen = await getScoringOpen();
     const updated = await client.query("SELECT * FROM games WHERE id = $1", [id]);
-    return enrichGame(mapGameRow(updated.rows[0]), teamsById, leagueDate);
+    return enrichGame(mapGameRow(updated.rows[0]), teamsById, scoringOpen);
   });
 }
 
