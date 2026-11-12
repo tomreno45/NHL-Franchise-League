@@ -17,7 +17,11 @@ const GAME_TYPE_STYLES = {
 
 export default function Schedule() {
   const [teams, setTeams] = useState([]);
+  // Two optional team filters: one narrows to that team's games, both narrow
+  // to the games between those two teams — handy for finding a console
+  // matchup to score without scrolling the whole schedule.
   const [teamId, setTeamId] = useState("");
+  const [opponentId, setOpponentId] = useState("");
   const [games, setGames] = useState(null);
   const [error, setError] = useState(null);
   const [scoreGame, setScoreGame] = useState(null);
@@ -26,7 +30,7 @@ export default function Schedule() {
 
   const reload = () => {
     api
-      .getSchedule(teamId || undefined)
+      .getSchedule(teamId || opponentId || undefined)
       .then(setGames)
       .catch((e) => setError(e.message));
   };
@@ -35,7 +39,12 @@ export default function Schedule() {
     api.getTeams().then(setTeams).catch((e) => setError(e.message));
   }, []);
 
-  useEffect(reload, [teamId]);
+  useEffect(reload, [teamId, opponentId]);
+
+  const visibleGames =
+    games && teamId && opponentId
+      ? games.filter((g) => g.homeTeam.id === Number(opponentId) || g.awayTeam.id === Number(opponentId))
+      : games;
 
   const handleSaved = () => {
     setScoreGame(null);
@@ -71,11 +80,32 @@ export default function Schedule() {
           onChange={(e) => setTeamId(e.target.value)}
         >
           <option value="">All Teams</option>
-          {teams.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.city} {t.name}
-            </option>
-          ))}
+          {teams
+            .filter((t) => String(t.id) !== opponentId)
+            .map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.city} {t.name}
+              </option>
+            ))}
+        </select>
+
+        <label className="text-sm text-slate-400" htmlFor="schedule-opponent">
+          vs
+        </label>
+        <select
+          id="schedule-opponent"
+          className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-slate-100"
+          value={opponentId}
+          onChange={(e) => setOpponentId(e.target.value)}
+        >
+          <option value="">Any Team</option>
+          {teams
+            .filter((t) => String(t.id) !== teamId)
+            .map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.city} {t.name}
+              </option>
+            ))}
         </select>
 
         <button
@@ -93,7 +123,8 @@ export default function Schedule() {
         <p className="text-slate-400">Loading schedule…</p>
       ) : (
         <div className="flex flex-col gap-2">
-          {games.map((g) => (
+          {visibleGames.length === 0 && <p className="text-slate-500">No games match these teams.</p>}
+          {visibleGames.map((g) => (
             <div key={g.id} className="rounded-lg bg-slate-900 px-4 py-3 text-sm">
               <div className="mb-2.5 flex items-center justify-between">
                 <span className="text-xs text-slate-500">{g.date}</span>
