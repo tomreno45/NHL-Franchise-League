@@ -85,6 +85,14 @@ ALTER TABLE players DROP COLUMN IF EXISTS roster_assignment_synced;
 -- would get silently erased the next time the server reboots.
 ALTER TABLE players ADD COLUMN IF NOT EXISTS nhl27_team_id INTEGER REFERENCES teams(id);
 
+-- The last season-to-date totals the commissioner entered for this player
+-- from user (console) games — kept apart from `stats` so re-entering them
+-- replaces the previous numbers instead of stacking (store.js's
+-- saveUserGameStats applies only the difference to `stats`, which also holds
+-- CPU-sim stats). NULL until something's entered; clears at progression with
+-- the rest of a player's season stats.
+ALTER TABLE players ADD COLUMN IF NOT EXISTS console_stats JSONB;
+
 CREATE TABLE IF NOT EXISTS games (
   id INTEGER PRIMARY KEY,
   date DATE NOT NULL,

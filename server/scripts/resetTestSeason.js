@@ -36,6 +36,9 @@ async function main() {
   await pool.query(`UPDATE players SET stats = $1, roster_assignment = 'MINORS' WHERE position = 'G'`, [
     JSON.stringify(EMPTY_GOALIE_STATS),
   ]);
+  // Entered user-game totals are part of the season stats too (see
+  // resetSeasonToDay1.js).
+  await pool.query("UPDATE players SET console_stats = NULL");
   console.log("Reset all player season stats to zero, roster_assignment to MINORS.");
 
   // --- 2. Rebuild a sane starting lineup for every team ---

@@ -28,6 +28,7 @@ import Resigning from "./components/Resigning";
 import Commissioner from "./components/Commissioner";
 import CommissionerRosterMoves from "./components/CommissionerRosterMoves";
 import CommissionerTeamRosters from "./components/CommissionerTeamRosters";
+import CommissionerUserGameStats from "./components/CommissionerUserGameStats";
 import UserList from "./components/UserList";
 import PendingMoves from "./components/PendingMoves";
 import Notifications from "./components/Notifications";
@@ -97,6 +98,7 @@ const GROUPS = [
       { key: "progression", label: "Progression", Component: Progression },
       { key: "commissionerrostermoves", label: "Roster Moves", Component: CommissionerRosterMoves },
       { key: "commissionerteamrosters", label: "Team Rosters", Component: CommissionerTeamRosters },
+      { key: "commissionerusergamestats", label: "User Game Stats", Component: CommissionerUserGameStats },
     ],
   },
 ];

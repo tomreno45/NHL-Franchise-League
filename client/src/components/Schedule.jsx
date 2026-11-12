@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import GameBoxScoreModal from "./GameBoxScoreModal";
+import GameScoreModal from "./GameScoreModal";
 import TeamLogo from "./TeamLogo";
 
 const GAME_TYPE_LABELS = {
@@ -20,7 +20,7 @@ export default function Schedule() {
   const [teamId, setTeamId] = useState("");
   const [games, setGames] = useState(null);
   const [error, setError] = useState(null);
-  const [boxScoreGame, setBoxScoreGame] = useState(null);
+  const [scoreGame, setScoreGame] = useState(null);
   const [advancing, setAdvancing] = useState(false);
   const [advanceMessage, setAdvanceMessage] = useState(null);
 
@@ -38,7 +38,7 @@ export default function Schedule() {
   useEffect(reload, [teamId]);
 
   const handleSaved = () => {
-    setBoxScoreGame(null);
+    setScoreGame(null);
     reload();
   };
 
@@ -124,15 +124,15 @@ export default function Schedule() {
                 {g.needsScore ? (
                   <button
                     type="button"
-                    onClick={() => setBoxScoreGame(g)}
+                    onClick={() => setScoreGame(g)}
                     className="rounded-md bg-amber-500/15 px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-500/25"
                   >
-                    Enter Box Score
+                    Enter Score
                   </button>
                 ) : g.gameType === "human_vs_human" && g.status === "final" ? (
                   <button
                     type="button"
-                    onClick={() => setBoxScoreGame(g)}
+                    onClick={() => setScoreGame(g)}
                     className="text-xs font-medium text-slate-500 hover:text-sky-400"
                   >
                     Final — Edit
@@ -150,8 +150,8 @@ export default function Schedule() {
         </div>
       )}
 
-      {boxScoreGame && (
-        <GameBoxScoreModal game={boxScoreGame} onClose={() => setBoxScoreGame(null)} onSaved={handleSaved} />
+      {scoreGame && (
+        <GameScoreModal game={scoreGame} onClose={() => setScoreGame(null)} onSaved={handleSaved} />
       )}
     </div>
   );

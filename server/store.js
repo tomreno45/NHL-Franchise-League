@@ -359,6 +359,7 @@ function mapPlayerRow(row) {
     lineupSlot: row.roster_assignment,
     nationality: row.nationality,
     nhl27TeamId: row.nhl27_team_id,
+    consoleStats: row.console_stats,
     draftedSeasonNumber: row.drafted_season_number,
     rightsOnly: row.rights_only,
     attributes: row.attributes,
@@ -571,139 +572,205 @@ async function getStandings() {
 
 // --- Score submission (human_vs_human games, reported back from the console) ---
 //
-// Unlike CPU-simmed games, a human game's final score is derived FROM the
-// box score (sum of each side's skater goals), not entered separately —
-// there's no other source of truth for what happened, so the two can never
-// drift out of sync. Editing an already-scored game reverses the previous
-// submission's stat contributions (stored verbatim in games.box_score)
-// before applying the new one, so corrections don't double-count.
-
-function creditSkaterBoxScoreLine(stats, { goals, assists }, sign) {
-  stats.gamesPlayed = (stats.gamesPlayed || 0) + sign;
-  stats.goals = (stats.goals || 0) + sign * goals;
-  stats.assists = (stats.assists || 0) + sign * assists;
-  stats.points = (stats.points || 0) + sign * (goals + assists);
-}
-
-function creditGoalieBoxScoreLine(stats, { goalsFor, goalsAgainst, shotsFaced, wentToOT }, sign) {
-  const won = goalsFor > goalsAgainst;
-  stats.gamesPlayed = (stats.gamesPlayed || 0) + sign;
-  if (won) stats.wins = (stats.wins || 0) + sign;
-  else if (wentToOT) stats.otLosses = (stats.otLosses || 0) + sign;
-  else stats.losses = (stats.losses || 0) + sign;
-  if (goalsAgainst === 0) stats.shutouts = (stats.shutouts || 0) + sign;
-  stats._goalsAgainstTotal = (stats._goalsAgainstTotal || 0) + sign * goalsAgainst;
-  stats._shotsFacedTotal = (stats._shotsFacedTotal || 0) + sign * shotsFaced;
-  stats.goalsAgainstAverage =
-    stats.gamesPlayed > 0 ? Math.round((stats._goalsAgainstTotal / stats.gamesPlayed) * 100) / 100 : 0;
-  stats.savePercentage =
-    stats._shotsFacedTotal > 0
-      ? Math.round((1 - stats._goalsAgainstTotal / stats._shotsFacedTotal) * 1000) / 1000
-      : 0;
-}
-
-// sign: +1 to apply this side's box score line to every named player,
-// -1 to reverse it (used when a correction supersedes a prior submission).
-async function applyBoxScoreSide(client, side, opponentGoals, wentToOT, sign) {
-  for (const s of side.skaters) {
-    const { rows } = await client.query("SELECT stats FROM players WHERE id = $1", [s.playerId]);
-    if (rows.length === 0) continue; // player no longer exists — nothing to (un)credit
-    const stats = rows[0].stats;
-    creditSkaterBoxScoreLine(stats, s, sign);
-    await client.query("UPDATE players SET stats = $1 WHERE id = $2", [JSON.stringify(stats), s.playerId]);
-  }
-
-  const { rows: goalieRows } = await client.query("SELECT stats FROM players WHERE id = $1", [side.goalieId]);
-  if (goalieRows.length === 0) return;
-  const goalieStats = goalieRows[0].stats;
-  const goalsFor = side.skaters.reduce((sum, s) => sum + s.goals, 0);
-  creditGoalieBoxScoreLine(goalieStats, { goalsFor, goalsAgainst: opponentGoals, shotsFaced: side.shotsFaced, wentToOT }, sign);
-  await client.query("UPDATE players SET stats = $1 WHERE id = $2", [JSON.stringify(goalieStats), side.goalieId]);
-}
-
-// Only the currently-dressed lineup (F1-F4/D1-D3 skaters, G1/G2 goalies) is
-// eligible — same rule the CPU sim uses, so a human box score can't credit
-// someone sitting in the minors/scratched.
-async function validateBoxScoreSide(teamId, side) {
-  if (!side || !Array.isArray(side.skaters)) {
-    throw badRequest("Each side needs a goalieId, shotsFaced, and a skaters array");
-  }
-  const roster = await getPlayersByTeam(teamId);
-  const dressedSkaterIds = new Set(
-    roster.filter((p) => p.position !== "G" && isDressedSlot(p.lineupSlot)).map((p) => p.id)
-  );
-  const dressedGoalieIds = new Set(
-    roster.filter((p) => p.position === "G" && (p.lineupSlot === "G1" || p.lineupSlot === "G2")).map((p) => p.id)
-  );
-
-  if (!Number.isInteger(side.goalieId) || !dressedGoalieIds.has(side.goalieId)) {
-    throw badRequest("goalieId must be one of this team's currently dressed goalies (G1/G2)");
-  }
-  if (!Number.isInteger(side.shotsFaced) || side.shotsFaced < 0) {
-    throw badRequest("shotsFaced must be a non-negative integer");
-  }
-  const seen = new Set();
-  for (const s of side.skaters) {
-    if (!dressedSkaterIds.has(s.playerId)) {
-      throw badRequest(`Player ${s.playerId} isn't currently dressed (F1-F4/D1-D3) for this team`);
-    }
-    if (seen.has(s.playerId)) throw badRequest(`Player ${s.playerId} appears twice in the box score`);
-    seen.add(s.playerId);
-    if (!Number.isInteger(s.goals) || s.goals < 0 || !Number.isInteger(s.assists) || s.assists < 0) {
-      throw badRequest(`Goals/assists must be non-negative integers for player ${s.playerId}`);
-    }
-  }
-}
-
-async function submitScore(gameId, { wentToOT, home, away }) {
+// A console game is reported as just its final score plus whether it went to
+// overtime (standings need that for OT losses). The per-player numbers from
+// those games are NOT entered game by game — they go in as season-to-date
+// totals through the commissioner's User Game Stats tab (see
+// saveUserGameStats below). Games scored before that change still carry a
+// stored games.box_score; it's left untouched here, since its stat
+// contributions were folded into players.console_stats by
+// scripts/migrateBoxScoresToConsoleStats.js.
+async function submitScore(gameId, { wentToOT, homeScore, awayScore }) {
   const id = Number(gameId);
-  const teamsById = await getTeamsById();
+  if (!Number.isInteger(homeScore) || homeScore < 0 || !Number.isInteger(awayScore) || awayScore < 0) {
+    throw badRequest("Home and away scores must be non-negative whole numbers");
+  }
+  if (homeScore === awayScore) {
+    throw badRequest("A final score cannot be tied — include the OT/shootout winner's goal");
+  }
 
-  return withTransaction(async (client) => {
-    const gameRes = await client.query("SELECT * FROM games WHERE id = $1 FOR UPDATE", [id]);
-    if (gameRes.rows.length === 0) throw notFound("Game not found");
-    const game = mapGameRow(gameRes.rows[0]);
+  const [teamsById, gameRes] = await Promise.all([getTeamsById(), pool.query("SELECT * FROM games WHERE id = $1", [id])]);
+  if (gameRes.rows.length === 0) throw notFound("Game not found");
+  const game = mapGameRow(gameRes.rows[0]);
+  if (gameType(game, teamsById) !== "human_vs_human") {
+    throw badRequest("Only human_vs_human games are scored manually — CPU-involved games are simulated");
+  }
 
-    if (gameType(game, teamsById) !== "human_vs_human") {
-      throw badRequest("Only human_vs_human games are scored manually — CPU-involved games are simulated");
+  await pool.query(
+    `UPDATE games SET status = 'final', home_score = $1, away_score = $2, went_to_ot = $3, source = 'manual'
+     WHERE id = $4`,
+    [homeScore, awayScore, Boolean(wentToOT), id]
+  );
+
+  const [scoringOpen, updated] = await Promise.all([getScoringOpen(), pool.query("SELECT * FROM games WHERE id = $1", [id])]);
+  return enrichGame(mapGameRow(updated.rows[0]), teamsById, scoringOpen);
+}
+
+// --- Season totals from user (console) games ---
+//
+// Since a console game is only reported as a final score, the commissioner
+// enters each user team's players' stats from those games as running
+// season-to-date totals. They're kept separately in players.console_stats
+// (so re-entering REPLACES the last numbers instead of stacking on them) and
+// the difference from the previous entry is applied to the player's real
+// season stats, which also hold whatever the CPU sim gave them in games
+// against CPU teams. console_stats clears with everything else at
+// progression, same as stats.
+
+function zeroConsoleStats(position) {
+  return position === "G"
+    ? { gamesPlayed: 0, wins: 0, losses: 0, otLosses: 0, shutouts: 0, goalsAgainst: 0, shotsFaced: 0 }
+    : { gamesPlayed: 0, goals: 0, assists: 0 };
+}
+
+// Mutates `stats` (a player's season stat blob) by (next - prev).
+function applyConsoleStatsDelta(stats, position, prev, next) {
+  stats.gamesPlayed = (stats.gamesPlayed || 0) + next.gamesPlayed - prev.gamesPlayed;
+  if (position === "G") {
+    stats.wins = (stats.wins || 0) + next.wins - prev.wins;
+    stats.losses = (stats.losses || 0) + next.losses - prev.losses;
+    stats.otLosses = (stats.otLosses || 0) + next.otLosses - prev.otLosses;
+    stats.shutouts = (stats.shutouts || 0) + next.shutouts - prev.shutouts;
+    stats._goalsAgainstTotal = (stats._goalsAgainstTotal || 0) + next.goalsAgainst - prev.goalsAgainst;
+    stats._shotsFacedTotal = (stats._shotsFacedTotal || 0) + next.shotsFaced - prev.shotsFaced;
+    stats.goalsAgainstAverage =
+      stats.gamesPlayed > 0 ? Math.round((stats._goalsAgainstTotal / stats.gamesPlayed) * 100) / 100 : 0;
+    stats.savePercentage =
+      stats._shotsFacedTotal > 0
+        ? Math.round((1 - stats._goalsAgainstTotal / stats._shotsFacedTotal) * 1000) / 1000
+        : 0;
+  } else {
+    stats.goals = (stats.goals || 0) + next.goals - prev.goals;
+    stats.assists = (stats.assists || 0) + next.assists - prev.assists;
+    stats.points = (stats.points || 0) + (next.goals + next.assists) - (prev.goals + prev.assists);
+  }
+}
+
+// Each human team's scored user games and goals for in them — what the
+// player entries are checked against.
+function userGameTotalsByTeam(games) {
+  const totals = new Map();
+  for (const g of games) {
+    if (g.gameType !== "human_vs_human" || g.status !== "final") continue;
+    for (const [teamId, goalsFor] of [
+      [g.homeTeamId, g.homeScore],
+      [g.awayTeamId, g.awayScore],
+    ]) {
+      const t = totals.get(teamId) ?? { userGamesPlayed: 0, goalsFor: 0 };
+      t.userGamesPlayed += 1;
+      t.goalsFor += goalsFor;
+      totals.set(teamId, t);
     }
+  }
+  return totals;
+}
 
-    await validateBoxScoreSide(game.homeTeamId, home);
-    await validateBoxScoreSide(game.awayTeamId, away);
+async function getUserGameStats() {
+  const [teams, players, games] = await Promise.all([getTeams(), getPlayers(), getGames()]);
+  const totals = userGameTotalsByTeam(games);
 
-    const homeScore = home.skaters.reduce((sum, s) => sum + s.goals, 0);
-    const awayScore = away.skaters.reduce((sum, s) => sum + s.goals, 0);
-    if (homeScore === awayScore) {
-      throw badRequest("A final score cannot be tied — check every goal is entered, including the OT winner");
+  return teams
+    .filter((t) => t.isHumanControlled)
+    .map((team) => ({
+      team,
+      userGamesPlayed: totals.get(team.id)?.userGamesPlayed ?? 0,
+      goalsFor: totals.get(team.id)?.goalsFor ?? 0,
+      // Dressed or scratched players, plus anyone who already has entered
+      // numbers even if they've since been sent down — minors players don't
+      // play console games.
+      players: players
+        .filter((p) => p.teamId === team.id && (p.lineupSlot !== "MINORS" || p.consoleStats))
+        .sort((a, b) => b.overall - a.overall)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          position: p.position,
+          overall: p.overall,
+          lineupSlot: p.lineupSlot,
+          consoleStats: p.consoleStats ?? zeroConsoleStats(p.position),
+        })),
+    }));
+}
+
+function normalizeConsoleEntry(position, entry) {
+  const whole = (field) => {
+    const v = entry[field];
+    if (!Number.isInteger(v) || v < 0) throw badRequest(`${field} must be a non-negative whole number`);
+    return v;
+  };
+  if (position === "G") {
+    const next = {
+      gamesPlayed: whole("gamesPlayed"),
+      wins: whole("wins"),
+      losses: whole("losses"),
+      otLosses: whole("otLosses"),
+      shutouts: whole("shutouts"),
+      goalsAgainst: whole("goalsAgainst"),
+      shotsFaced: whole("shotsFaced"),
+    };
+    if (next.wins + next.losses + next.otLosses > next.gamesPlayed) {
+      throw badRequest("wins + losses + OT losses can't exceed games played");
     }
-    if (home.shotsFaced < awayScore) {
-      throw badRequest("Home goalie's shots faced can't be less than the away team's goals");
+    if (next.shutouts > next.gamesPlayed) throw badRequest("shutouts can't exceed games played");
+    if (next.shotsFaced < next.goalsAgainst) throw badRequest("shots faced can't be less than goals against");
+    return next;
+  }
+  return { gamesPlayed: whole("gamesPlayed"), goals: whole("goals"), assists: whole("assists") };
+}
+
+// entries: [{ playerId, gamesPlayed, goals, assists }] for skaters or
+// [{ playerId, gamesPlayed, wins, losses, otLosses, shutouts, goalsAgainst,
+// shotsFaced }] for goalies — each a running season-to-date total for user
+// games. Everything is validated before anything is written.
+async function saveUserGameStats(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) throw badRequest("entries must be a non-empty array");
+
+  const [teams, games, { rows }] = await Promise.all([
+    getTeams(),
+    getGames(),
+    pool.query("SELECT id, name, team_id, position, stats, console_stats FROM players WHERE id = ANY($1)", [
+      entries.map((e) => Number(e.playerId)),
+    ]),
+  ]);
+  const teamsById = new Map(teams.map((t) => [t.id, t]));
+  const totals = userGameTotalsByTeam(games);
+  const playersById = new Map(rows.map((p) => [p.id, p]));
+
+  const prepared = entries.map((entry) => {
+    const player = playersById.get(Number(entry.playerId));
+    if (!player) throw notFound(`Player ${entry.playerId} not found`);
+    const team = teamsById.get(player.team_id);
+    if (!team?.isHumanControlled) throw badRequest(`${player.name} isn't on a human-controlled team`);
+
+    let next;
+    try {
+      next = normalizeConsoleEntry(player.position, entry);
+    } catch (err) {
+      throw badRequest(`${player.name}: ${err.message}`);
     }
-    if (away.shotsFaced < homeScore) {
-      throw badRequest("Away goalie's shots faced can't be less than the home team's goals");
+    const cap = totals.get(team.id)?.userGamesPlayed ?? 0;
+    if (next.gamesPlayed > cap) {
+      throw badRequest(
+        `${player.name}: ${next.gamesPlayed} games played is more than the ${cap} user game(s) scored for ${team.city} ${team.name}`
+      );
     }
-
-    if (game.boxScore) {
-      const prevAwayGoals = game.boxScore.away.skaters.reduce((s, p) => s + p.goals, 0);
-      const prevHomeGoals = game.boxScore.home.skaters.reduce((s, p) => s + p.goals, 0);
-      await applyBoxScoreSide(client, game.boxScore.home, prevAwayGoals, game.boxScore.wentToOT, -1);
-      await applyBoxScoreSide(client, game.boxScore.away, prevHomeGoals, game.boxScore.wentToOT, -1);
-    }
-
-    await applyBoxScoreSide(client, home, awayScore, Boolean(wentToOT), 1);
-    await applyBoxScoreSide(client, away, homeScore, Boolean(wentToOT), 1);
-
-    const boxScore = { wentToOT: Boolean(wentToOT), home, away };
-    await client.query(
-      `UPDATE games SET status = 'final', home_score = $1, away_score = $2, went_to_ot = $3, source = 'manual', box_score = $4
-       WHERE id = $5`,
-      [homeScore, awayScore, Boolean(wentToOT), JSON.stringify(boxScore), id]
-    );
-
-    const scoringOpen = await getScoringOpen();
-    const updated = await client.query("SELECT * FROM games WHERE id = $1", [id]);
-    return enrichGame(mapGameRow(updated.rows[0]), teamsById, scoringOpen);
+    return { player, next };
   });
+
+  await withTransaction(async (client) => {
+    for (const { player, next } of prepared) {
+      const prev = player.console_stats ?? zeroConsoleStats(player.position);
+      const stats = player.stats;
+      applyConsoleStatsDelta(stats, player.position, prev, next);
+      await client.query("UPDATE players SET stats = $1, console_stats = $2 WHERE id = $3", [
+        JSON.stringify(stats),
+        JSON.stringify(next),
+        player.id,
+      ]);
+    }
+  });
+
+  return getUserGameStats();
 }
 
 // --- CPU simulation (human_vs_cpu and cpu_vs_cpu games) ---
@@ -1911,7 +1978,7 @@ async function runProgression() {
   await withTransaction(async (client) => {
     for (const r of results) {
       await client.query(
-        "UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4, potential = $5 WHERE id = $6",
+        "UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4, potential = $5, console_stats = NULL WHERE id = $6",
         [r.newAge, r.newOverall, JSON.stringify(r.attributes), JSON.stringify(r.resetStats), JSON.stringify(r.potential), r.playerId]
       );
     }
@@ -4712,6 +4779,8 @@ module.exports = {
   signDraftRights,
   DRAFT_RIGHTS_WINDOW_SEASONS, // exported so import scripts can put a player straight into the same rights-held state a fresh draft pick starts in, without duplicating the "3" as a second magic number
   getLineupSlots,
+  getUserGameStats,
+  saveUserGameStats,
   assignLineupSlot,
   autoSetLineup,
   getRosterChanges,

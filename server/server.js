@@ -654,16 +654,35 @@ app.get(
   })
 );
 
-// Manual box-score entry for human_vs_human games played on the console —
-// the final score is derived from the submitted goals, not entered
-// separately. Re-submitting an already-scored game cleanly corrects it
-// (store.submitScore reverses the previous submission first).
+// Final score entry for human_vs_human games played on the console — just
+// the two scores and whether it went to overtime. Re-submitting an
+// already-scored game simply overwrites it. Player stats from these games
+// aren't entered here; see /api/commissioner/user-game-stats below.
 app.put(
   "/api/games/:id/score",
   asyncRoute(async (req, res) => {
-    const { wentToOT, home, away } = req.body;
-    const game = await store.submitScore(req.params.id, { wentToOT, home, away });
+    const { wentToOT, homeScore, awayScore } = req.body;
+    const game = await store.submitScore(req.params.id, { wentToOT, homeScore, awayScore });
     res.json(game);
+  })
+);
+
+// Season-to-date player stats from user (console) games, per human team —
+// the commissioner enters them as running totals, capped at how many user
+// games have been scored for that team.
+app.get(
+  "/api/commissioner/user-game-stats",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await store.getUserGameStats());
+  })
+);
+
+app.put(
+  "/api/commissioner/user-game-stats",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await store.saveUserGameStats(req.body.entries));
   })
 );
 
