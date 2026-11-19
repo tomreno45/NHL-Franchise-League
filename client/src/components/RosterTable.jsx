@@ -76,6 +76,14 @@ export default function RosterTable({ teamId }) {
     setSort((prev) => (prev.key === key ? { key, dir: prev.dir === "asc" ? "desc" : "asc" } : { key, dir: "desc" }));
   };
 
+  const handlePlayerUpdate = (updatedPlayer) => {
+    setRoster((prev) => ({
+      ...prev,
+      roster: prev.roster.map((p) => (p.id === updatedPlayer.id ? updatedPlayer : p)),
+    }));
+    setSelectedPlayer(updatedPlayer);
+  };
+
   const sortedRoster = useMemo(() => {
     if (!roster) return null;
     return sortRows(roster.roster, ROSTER_ACCESSORS, sort.key, sort.dir);
@@ -197,7 +205,9 @@ export default function RosterTable({ teamId }) {
           </div>
         </>
       )}
-      {selectedPlayer && <PlayerDetailModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />}
+      {selectedPlayer && (
+        <PlayerDetailModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} onUpdate={handlePlayerUpdate} />
+      )}
     </div>
   );
 }

@@ -29,7 +29,14 @@ const path = require("path");
 const ExcelJS = require("exceljs");
 const { pool } = require("../db");
 const store = require("../store");
-const { SKATER_ATTRS, GOALIE_ATTRS, teams: TEAM_DEFS } = require("../data");
+const { SKATER_ATTRS, GOALIE_ATTRS, teams: TEAM_DEFS, normalizePlayerType } = require("../data");
+
+// "6'3\"" -> 75. Null for anything that doesn't parse, so a bad cell leaves
+// height unknown (neutral for X-Factor weighting) instead of guessing.
+function parseHeightInches(raw) {
+  const m = String(raw || "").match(/(\d+)'\s*(\d+)/);
+  return m ? Number(m[1]) * 12 + Number(m[2]) : null;
+}
 const { generateNhlStyleSchedule } = require("../scheduleGenerator");
 
 const DATA_DIR = path.join(__dirname, "..", "..", "Roster Database");
@@ -465,6 +472,9 @@ async function main() {
       potential,
       isGoalie,
       salaryMatch,
+      heightInches: parseHeightInches(v[colIndex.Height]),
+      weightLbs: Number(v[colIndex.Weight]) > 0 ? Math.round(Number(v[colIndex.Weight])) : null,
+      playerType: normalizePlayerType(v[colIndex.PlayerType]),
     });
   });
 
@@ -582,8 +592,8 @@ async function main() {
       `INSERT INTO players
          (id, team_id, name, position, jersey_number, age, overall, cap_hit,
           contract_years_left, in_game_status, roster_assignment, attributes, potential, stats,
-          rights_only, drafted_season_number)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'not_created','MINORS',$10,$11,$12,$13,$14)`,
+          rights_only, drafted_season_number, height_inches, weight_lbs, player_type)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'not_created','MINORS',$10,$11,$12,$13,$14,$15,$16,$17)`,
       [
         nextId,
         p.teamId,
@@ -599,6 +609,9 @@ async function main() {
         JSON.stringify(stats),
         p.rightsOnly,
         p.draftedSeasonNumber,
+        p.heightInches,
+        p.weightLbs,
+        p.playerType,
       ]
     );
     nextId++;

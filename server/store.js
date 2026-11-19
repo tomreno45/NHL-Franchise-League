@@ -7,6 +7,12 @@ const {
   ATTRIBUTE_CATEGORIES,
   GOALIE_ATTRS,
   GOALIE_ATTRIBUTE_CATEGORIES,
+  X_FACTOR_CATEGORIES,
+  X_FACTOR_SKATER_ABILITIES,
+  X_FACTOR_GOALIE_ABILITIES,
+  X_FACTOR_TIERS,
+  MAX_X_FACTORS,
+  X_FACTOR_GUIDELINES,
   generatePotential,
   firstNames,
   lastNames,
@@ -175,12 +181,24 @@ function contractBurdenPenalty(player) {
   return overpay * 0.6 * ageFactor * termFactor;
 }
 
+// A GM-entered X-Factor is a real, game-confirmed edge NHL 27 gave this
+// player — worth a modest trade-value bump on top of whatever overall/
+// potential already capture, scaled by tier. Not huge on its own (a single
+// Elite is worth less than a few points of overall), but three Elites on
+// a star player should be felt.
+const X_FACTOR_TIER_VALUE = { specialist: 0.4, all_star: 0.85, elite: 1.5 };
+
+function xFactorValueComponent(xFactors) {
+  return (xFactors || []).reduce((sum, x) => sum + (X_FACTOR_TIER_VALUE[x.tier] ?? 0), 0);
+}
+
 function computeTradeValue(player) {
   const raw =
     overallValueComponent(player.overall) -
     ageDiscount(player.age, player.overall) +
     growthValueComponent(player.overall, player.potential, player.age) +
-    youthBonus(player.age) -
+    youthBonus(player.age) +
+    xFactorValueComponent(player.xFactors) -
     contractBurdenPenalty(player);
   return clamp(Math.round(raw), 1, 20);
 }
@@ -359,6 +377,10 @@ function mapPlayerRow(row) {
     lineupSlot: row.roster_assignment,
     nationality: row.nationality,
     nhl27TeamId: row.nhl27_team_id,
+    xFactors: row.x_factors,
+    heightInches: row.height_inches,
+    weightLbs: row.weight_lbs,
+    playerType: row.player_type,
     consoleStats: row.console_stats,
     draftedSeasonNumber: row.drafted_season_number,
     rightsOnly: row.rights_only,
@@ -1507,6 +1529,49 @@ function getLineupSlots() {
   return { slots: LINEUP_SLOTS, scratchSlot: SCRATCH_SLOT, minorsSlot: MINORS_SLOT, maxScratches: MAX_SCRATCHES };
 }
 
+// Served to the client rather than hardcoded there a second time — same
+// reasoning as getLineupSlots above.
+function getXFactorCatalog() {
+  return {
+    categories: X_FACTOR_CATEGORIES,
+    skaterAbilities: X_FACTOR_SKATER_ABILITIES,
+    goalieAbilities: X_FACTOR_GOALIE_ABILITIES,
+    tiers: X_FACTOR_TIERS,
+    maxXFactors: MAX_X_FACTORS,
+  };
+}
+
+// A GM enters these to match whatever NHL 27 actually assigned their own
+// player — this app never generates them itself, just validates and stores
+// what's entered (see data.js's X_FACTOR_CATEGORIES for the catalog).
+// Ownership-gated like every other self-service roster action (lineup,
+// re-signing): a team only ever edits its own players.
+async function setPlayerXFactors({ teamId, playerId, xFactors }) {
+  if (!Array.isArray(xFactors)) throw badRequest("xFactors must be an array");
+  if (xFactors.length > MAX_X_FACTORS) throw badRequest(`A player can only have up to ${MAX_X_FACTORS} X-Factors`);
+
+  const { rows } = await pool.query("SELECT id, team_id, position FROM players WHERE id = $1", [playerId]);
+  if (rows.length === 0) throw notFound(`Player ${playerId} not found`);
+  const player = rows[0];
+  if (player.team_id !== teamId) throw badRequest("This isn't your player to edit");
+
+  const allowedAbilities = player.position === "G" ? X_FACTOR_GOALIE_ABILITIES : X_FACTOR_SKATER_ABILITIES;
+  const seenAbilities = new Set();
+  for (const x of xFactors) {
+    if (!allowedAbilities.includes(x.ability)) {
+      throw badRequest(`"${x.ability}" isn't a valid X-Factor for a ${player.position === "G" ? "goalie" : "skater"}`);
+    }
+    if (!X_FACTOR_TIERS.includes(x.tier)) throw badRequest(`"${x.tier}" isn't a valid X-Factor tier`);
+    if (seenAbilities.has(x.ability)) throw badRequest(`"${x.ability}" is listed more than once`);
+    seenAbilities.add(x.ability);
+  }
+
+  const cleaned = xFactors.map((x) => ({ ability: x.ability, tier: x.tier }));
+  await pool.query("UPDATE players SET x_factors = $1 WHERE id = $2", [JSON.stringify(cleaned), playerId]);
+  const { rows: updated } = await pool.query("SELECT * FROM players WHERE id = $1", [playerId]);
+  return mapPlayerRow(updated[0]);
+}
+
 // Click-a-player-then-a-target semantics: the client always passes the
 // *target's current slot* as targetSlot (whether that target is an empty
 // line spot, an occupied one, or the scratch/minors pool). If targetSlot is
@@ -1705,6 +1770,7 @@ async function getRosterSyncExport(status) {
       age: p.age,
       overall: p.overall,
       attributes: p.attributes,
+      xFactors: p.xFactors,
     }))
     .sort((a, b) => a.team.city.localeCompare(b.team.city) || a.name.localeCompare(b.name));
 }
@@ -1855,6 +1921,165 @@ function agingDeclineRange(stars) {
   return [min, min + 2];
 }
 
+// --- X-Factor gain/upgrade (rolled once per player per progression) ---
+//
+// X-Factors started out as purely GM-entered data (see setPlayerXFactors),
+// but progression now also awards and upgrades them: potential decides how
+// OFTEN a player gets an event at all, and their actual attributes decide
+// whether they qualify for anything when one fires — a 5-star prospect with
+// mediocre skating still can't pick up a skating X-Factor, and a mid-tier
+// player who happens to have elite shot ratings still can, just rarely.
+// Anything it awards flags the player needs_update (see runProgression), so
+// the GM knows to apply it to their NHL 27 card.
+
+// Which attributes make up each ability category's "rating" — the same
+// groupings NHL 27's own X-Factor menu uses, mapped onto this app's
+// attribute names. Goalies have a single category, rated off their whole
+// attribute set.
+const X_FACTOR_CATEGORY_ATTRS = {
+  skating: ["acceleration", "agility", "balance", "endurance", "speed"],
+  shootingPassing: ["slapShotAccuracy", "slapShotPower", "wristShotAccuracy", "wristShotPower", "passing"],
+  puckSkills: ["deking", "handEye", "passing", "puckControl"],
+  checking: ["bodyChecking", "stickChecking", "strength", "aggressiveness"],
+  goalie: GOALIE_ATTRS,
+};
+
+const X_FACTOR_ABILITY_CATEGORY = new Map(
+  Object.entries(X_FACTOR_CATEGORIES).flatMap(([category, abilities]) => abilities.map((a) => [a, category]))
+);
+
+// Minimum category rating to hold (or be upgraded to) each tier.
+const X_FACTOR_TIER_MIN_RATING = { specialist: 75, all_star: 83, elite: 90 };
+
+// Per-year chance a player has an X-Factor event at all (a gain or an
+// upgrade), by potential stars: 5-star ~28%, 4-star ~18%, 3-star ~10%,
+// 2-star ~5%, 1-star ~2%. Kept low on purpose — in NHL 27 most players
+// have none, and a first draft of this (~45% for a 5-star) handed one to
+// nearly every 4-star+ player by age 30.
+function xFactorEventChance(stars) {
+  return clamp(0.01 + Math.pow(stars / 5, 2.2) * 0.27, 0.01, 0.28);
+}
+
+// When a player could do either, how often it's a brand new X-Factor rather
+// than an upgrade of one they already have.
+const X_FACTOR_GAIN_SHARE = 0.5;
+
+// A 5-star player always ends up with a full set of three: until all three
+// slots are filled, every progression hands them a new X-Factor (no event
+// roll), and the usual attribute floor is waived so a young 5-star whose
+// ratings haven't caught up to the potential yet can't get stuck short. They
+// still start at Specialist like everyone else — upgrades stay attribute-
+// gated.
+const X_FACTOR_GUARANTEED_STARS = 5;
+
+function xFactorCategoryRating(category, attributes) {
+  return mean(X_FACTOR_CATEGORY_ATTRS[category].map((attr) => attributes[attr]));
+}
+
+// How much weaker a pick becomes for each guideline it misses, by how tightly
+// that ability ties to the build/archetype (see data.js's guidelines).
+const X_FACTOR_MISMATCH_FACTOR = { strong: 0.2, moderate: 0.4, loose: 0.7 };
+
+// Multiplier on how likely `player` is to be handed `ability` when a gain
+// fires, from the "who generally gets which X-Factor" guideline: position is
+// firm (0 if the ability isn't offered to that position at all), while
+// player type, height and weight are each a soft multiplier that only
+// applies when the player actually HAS that data — a player with no
+// recorded height, say, just isn't judged on height.
+function xFactorFit(ability, player) {
+  const guideline = X_FACTOR_GUIDELINES[ability];
+  if (!guideline) return 1;
+  if (!guideline.positions.includes(player.position)) return 0;
+
+  const miss = X_FACTOR_MISMATCH_FACTOR[guideline.strength];
+  let fit = 1;
+  if (player.playerType && !guideline.types.includes(player.playerType)) fit *= miss;
+  const { height, weight } = guideline;
+  if (height && player.heightInches != null) {
+    const ok = height.dir === "taller" ? player.heightInches > height.inches : player.heightInches < height.inches;
+    if (!ok) fit *= miss;
+  }
+  if (weight && player.weightLbs != null) {
+    const ok = weight.dir === "heavier" ? player.weightLbs > weight.lbs : player.weightLbs < weight.lbs;
+    if (!ok) fit *= miss;
+  }
+  return fit;
+}
+
+function pickWeighted(items, weightOf) {
+  const weights = items.map(weightOf);
+  let roll = Math.random() * weights.reduce((sum, w) => sum + w, 0);
+  for (let i = 0; i < items.length; i++) {
+    roll -= weights[i];
+    if (roll < 0) return items[i];
+  }
+  return items[items.length - 1];
+}
+
+// Pure. Returns { xFactors, change } — change is null when nothing happened
+// (no event rolled, nothing eligible, or already maxed out), otherwise
+// { ability, fromTier (null for a brand new one), toTier }.
+function rollXFactorChange(player, attributes, stars, age) {
+  const current = player.xFactors ?? [];
+  const unchanged = { xFactors: current, change: null };
+
+  // Same cutoff the steep aging stage uses — nobody's picking up new
+  // abilities once they're on the way out.
+  if (age >= AGING_STEEP_START_AGE) return unchanged;
+  const mustFillSlots = stars >= X_FACTOR_GUARANTEED_STARS && current.length < MAX_X_FACTORS;
+  if (!mustFillSlots && Math.random() >= xFactorEventChance(stars)) return unchanged;
+
+  const categories = player.position === "G" ? ["goalie"] : ["skating", "shootingPassing", "puckSkills", "checking"];
+  const ratingByCategory = new Map(categories.map((c) => [c, xFactorCategoryRating(c, attributes)]));
+
+  const owned = new Set(current.map((x) => x.ability));
+  const gainable =
+    current.length < MAX_X_FACTORS
+      ? categories
+          .filter((c) => mustFillSlots || ratingByCategory.get(c) >= X_FACTOR_TIER_MIN_RATING.specialist)
+          .flatMap((c) =>
+            X_FACTOR_CATEGORIES[c]
+              .filter((a) => !owned.has(a))
+              .map((ability) => ({ ability, category: c, fit: xFactorFit(ability, player) }))
+          )
+          // fit 0 = the guideline doesn't offer this ability to their position.
+          .filter((g) => g.fit > 0)
+      : [];
+  const upgradable = current.filter((x) => {
+    const next = X_FACTOR_TIERS[X_FACTOR_TIERS.indexOf(x.tier) + 1];
+    return next && ratingByCategory.get(X_FACTOR_ABILITY_CATEGORY.get(x.ability)) >= X_FACTOR_TIER_MIN_RATING[next];
+  });
+
+  if (gainable.length === 0 && upgradable.length === 0) return unchanged;
+
+  const gain =
+    gainable.length > 0 && (mustFillSlots || upgradable.length === 0 || Math.random() < X_FACTOR_GAIN_SHARE);
+  if (gain) {
+    // Two things shape the pick: stronger categories are likelier (squared
+    // headroom over the Specialist bar, floored at 1 for the waived-floor
+    // 5-star case) so a sniper tends to pick up shooting abilities, and
+    // xFactorFit scales each ability by how well the player's type/height/
+    // weight match the "who generally gets this" guideline.
+    const picked = pickWeighted(
+      gainable,
+      (g) =>
+        Math.pow(Math.max(ratingByCategory.get(g.category) - X_FACTOR_TIER_MIN_RATING.specialist + 1, 1), 2) * g.fit
+    );
+    const tier = X_FACTOR_TIERS[0];
+    return {
+      xFactors: [...current, { ability: picked.ability, tier }],
+      change: { ability: picked.ability, fromTier: null, toTier: tier },
+    };
+  }
+
+  const picked = upgradable[Math.floor(Math.random() * upgradable.length)];
+  const toTier = X_FACTOR_TIERS[X_FACTOR_TIERS.indexOf(picked.tier) + 1];
+  return {
+    xFactors: current.map((x) => (x.ability === picked.ability ? { ...x, tier: toTier } : x)),
+    change: { ability: picked.ability, fromTier: picked.tier, toTier },
+  };
+}
+
 // Pure: computes a player's new age/overall/attributes/reset-stats without
 // touching the database, so runProgression can batch the writes afterward.
 function progressPlayer(player) {
@@ -1944,6 +2169,16 @@ function progressPlayer(player) {
   const meanAttrDelta = mean(attrList.map((attr) => attributeDeltas[attr]));
   const newOverall = clamp(Math.round(previousOverall + meanAttrDelta), 25, 99);
 
+  // Uses the stars they held going INTO this progression, not newStars — a
+  // 5-star who just took a mild-stage decline step this same year still
+  // counts as the 5-star he was all season.
+  const { xFactors: newXFactors, change: xFactorChange } = rollXFactorChange(
+    player,
+    newAttributes,
+    player.potential.stars,
+    previousAge
+  );
+
   return {
     playerId: player.id,
     teamId: player.teamId,
@@ -1958,6 +2193,8 @@ function progressPlayer(player) {
     attributes: newAttributes,
     previousPotential: player.potential,
     potential: { stars: newStars, confidence: player.potential.confidence },
+    xFactors: newXFactors,
+    xFactorChange,
     resetStats,
   };
 }
@@ -1969,17 +2206,28 @@ async function runProgression() {
 
   // Same threshold as the change-sheet report below — a player whose
   // overall moved enough to be worth flagging there also needs their NHL
-  // 27 attributes hand-updated to match. Only upgrades an 'active' player;
-  // never downgrades someone already 'not_created' — they need a fresh
-  // entry either way, and creating them will naturally use the new values.
-  const flagged = results.filter((r) => Math.abs(r.ovrDelta) >= 2);
+  // 27 attributes hand-updated to match, and so does anyone who gained or
+  // upgraded an X-Factor this year (that has to be applied to their card
+  // regardless of how little their overall moved). Only upgrades an
+  // 'active' player; never downgrades someone already 'not_created' — they
+  // need a fresh entry either way, and creating them will naturally use the
+  // new values.
+  const flagged = results.filter((r) => Math.abs(r.ovrDelta) >= 2 || r.xFactorChange);
   const flaggedIds = flagged.map((r) => r.playerId);
 
   await withTransaction(async (client) => {
     for (const r of results) {
       await client.query(
-        "UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4, potential = $5, console_stats = NULL WHERE id = $6",
-        [r.newAge, r.newOverall, JSON.stringify(r.attributes), JSON.stringify(r.resetStats), JSON.stringify(r.potential), r.playerId]
+        "UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4, potential = $5, x_factors = $6, console_stats = NULL WHERE id = $7",
+        [
+          r.newAge,
+          r.newOverall,
+          JSON.stringify(r.attributes),
+          JSON.stringify(r.resetStats),
+          JSON.stringify(r.potential),
+          JSON.stringify(r.xFactors),
+          r.playerId,
+        ]
       );
     }
     if (flaggedIds.length > 0) {
@@ -2008,6 +2256,7 @@ async function runProgression() {
           newOverall: r.newOverall,
           ovrDelta: r.ovrDelta,
           attributeDeltas: r.attributeDeltas,
+          xFactorChange: r.xFactorChange,
         })),
     }));
 
@@ -4795,6 +5044,8 @@ module.exports = {
   getLineupSlots,
   getUserGameStats,
   saveUserGameStats,
+  getXFactorCatalog,
+  setPlayerXFactors,
   assignLineupSlot,
   autoSetLineup,
   getRosterChanges,

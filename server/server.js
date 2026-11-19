@@ -782,6 +782,29 @@ app.post(
   })
 );
 
+// The valid X-Factor ability/tier catalog — static, but served from here so
+// the client never hardcodes a second copy (same reasoning as lineup/slots).
+app.get(
+  "/api/x-factors/catalog",
+  asyncRoute(async (req, res) => {
+    res.json(store.getXFactorCatalog());
+  })
+);
+
+// Sets one of the requester's own players' X-Factors (up to 3) to match
+// whatever NHL 27 actually assigned them — this app never generates these
+// itself, see store.js's setPlayerXFactors.
+app.post(
+  "/api/roster/:playerId/x-factors",
+  requireTeam,
+  asyncRoute(async (req, res) => {
+    const { xFactors } = req.body;
+    res.json(
+      await store.setPlayerXFactors({ teamId: req.teamId, playerId: Number(req.params.playerId), xFactors })
+    );
+  })
+);
+
 // Players (per human team) whose NHL 27 card is out of date and needs the
 // commissioner to apply the change in-console. Clearing this list and
 // generating the season's schedule both happen automatically when the
@@ -1090,7 +1113,12 @@ async function buildRosterSyncWorkbook(status) {
     { header: "Jersey #", key: "jersey", width: 10 },
     { header: "Age", key: "age", width: 6 },
     { header: "Overall", key: "overall", width: 8 },
+    { header: "X-Factors", key: "xFactors", width: 36 },
   ];
+
+  const TIER_LABELS = { specialist: "Specialist", all_star: "All-Star", elite: "Elite" };
+  const describeXFactors = (xFactors) =>
+    (xFactors || []).map((x) => `${x.ability} (${TIER_LABELS[x.tier] ?? x.tier})`).join(", ");
 
   const addSheet = (sheetName, positionFilter, attrs) => {
     const sheet = workbook.addWorksheet(sheetName);
@@ -1107,6 +1135,7 @@ async function buildRosterSyncWorkbook(status) {
           jersey: p.jerseyNumber,
           age: p.age,
           overall: p.overall,
+          xFactors: describeXFactors(p.xFactors),
           ...p.attributes,
         });
       });

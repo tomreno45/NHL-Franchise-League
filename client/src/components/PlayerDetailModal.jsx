@@ -1,6 +1,8 @@
 import StarRating, { CONFIDENCE_COLORS } from "./StarRating";
 import PlayerAttributes from "./PlayerAttributes";
+import PlayerXFactors from "./PlayerXFactors";
 import TradeValueBar from "./TradeValueBar";
+import { useMyTeam } from "../MyTeamContext";
 
 const STATUS_STYLES = {
   active: "bg-emerald-500/15 text-emerald-400",
@@ -28,7 +30,10 @@ function Stat({ label, children }) {
 // (cap hit, trade value, etc.) visible around it to mean anything; a modal
 // carries all of that with it instead, so it works the same regardless of
 // how narrow the screen is.
-export default function PlayerDetailModal({ player, onClose }) {
+export default function PlayerDetailModal({ player, onClose, onUpdate }) {
+  const { myTeamId } = useMyTeam();
+  const canEditXFactors = Boolean(onUpdate) && player.teamId === myTeamId;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
       <div
@@ -66,6 +71,8 @@ export default function PlayerDetailModal({ player, onClose }) {
           <div className="hub-label mb-1">Trade Value</div>
           <TradeValueBar value={player.tradeValue} />
         </div>
+
+        <PlayerXFactors player={player} canEdit={canEditXFactors} onUpdate={onUpdate} />
 
         <PlayerAttributes player={player} />
       </div>

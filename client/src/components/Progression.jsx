@@ -57,6 +57,19 @@ function chip(attr, label, delta) {
   );
 }
 
+const TIER_LABELS = { specialist: "Specialist", all_star: "All-Star", elite: "Elite" };
+
+function XFactorChange({ change }) {
+  if (!change) return null;
+  return (
+    <div className="mb-1.5 text-xs text-amber-400">
+      {change.fromTier
+        ? `X-Factor upgraded: ${change.ability} ${TIER_LABELS[change.fromTier]} → ${TIER_LABELS[change.toTier]}`
+        : `New X-Factor: ${change.ability} (${TIER_LABELS[change.toTier]})`}
+    </div>
+  );
+}
+
 function AttributeChips({ attributeDeltas, position }) {
   if (!attributeDeltas) return null;
   const groups = position === "G" ? GOALIE_GROUPS : SKATER_GROUPS;
@@ -185,7 +198,7 @@ export default function Progression() {
                   </span>
                 </h2>
                 {sheet.players.length === 0 ? (
-                  <p className="text-sm text-slate-500">No players moved ≥2 OVR.</p>
+                  <p className="text-sm text-slate-500">No players moved ≥2 OVR or changed X-Factors.</p>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {sheet.players.map((p) => (
@@ -202,6 +215,7 @@ export default function Progression() {
                             <DeltaBadge value={p.ovrDelta} />
                           </span>
                         </div>
+                        <XFactorChange change={p.xFactorChange} />
                         <AttributeChips attributeDeltas={p.attributeDeltas} position={p.position} />
                       </div>
                     ))}
