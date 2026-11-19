@@ -1,4 +1,4 @@
-// Backfills players.height_inches / weight_lbs / player_type (see schema.sql)
+// Backfills players.height_inches / weight_lbs / player_type / x_factors (see schema.sql)
 // for an existing OG HFL database from the same roster spreadsheet it was
 // imported from, so X-Factor progression can weight by build and archetype
 // (see data.js's X_FACTOR_GUIDELINES). importOgHflRosters.js now writes these
@@ -19,11 +19,26 @@
 // Rookies drafted after the import (ids past the spreadsheet's last row) are
 // left alone — their height/weight comes from their draft prospect instead.
 //
-// Usage: LEAGUE=og_hfl node scripts/backfillPlayerBuild.js
+// X-Factors are likewise only filled in where the player has none yet, so a GM's own edits
+// are never overwritten. Only the original team rows (everything before the appended
+// 2027Draftees / FreeAgents rows) are used; those players are handled by their own import.
+//
+// Usage: LEAGUE=og_hfl node scripts/backfillPlayerBuild.js [--apply]   (without --apply: dry run)
+// To target a hosted database also set ALLOW_REMOTE_OG_HFL=host:port (the og_hfl db only).
 const path = require("path");
 const ExcelJS = require("exceljs");
 const { pool } = require("../db");
-const { normalizePlayerType } = require("../data");
+const { normalizePlayerType, X_FACTOR_SKATER_ABILITIES, X_FACTOR_GOALIE_ABILITIES } = require("../data");
+
+const APPLY = process.argv.includes("--apply");
+const TIER_KEY = { Specialist: "specialist", "All-Star": "all_star", Elite: "elite" };
+const url = process.env.DATABASE_URL_OG_HFL || "";
+const isLocal = /@(localhost|127\.0\.0\.1)(:|\/)/.test(url);
+const remoteOk = !!process.env.ALLOW_REMOTE_OG_HFL && url.includes("@" + process.env.ALLOW_REMOTE_OG_HFL + "/");
+if (process.env.LEAGUE !== "og_hfl" || !(isLocal || remoteOk) || !/\/hockey_franchise_og_hfl$/.test(url)) {
+  console.error("Refusing to run: LEAGUE must be og_hfl and DATABASE_URL_OG_HFL must be the og_hfl database on localhost (or the host named in ALLOW_REMOTE_OG_HFL).");
+  process.exit(1);
+}
 
 const SOURCE = path.join(__dirname, "..", "..", "Roster Database", "NHL_All_Teams_Players.xlsx");
 const MAX_NAME_MISMATCH_RATE = 0.05;
@@ -57,7 +72,16 @@ async function main() {
   sheet.eachRow({ includeEmpty: false }, (row, rowNum) => {
     if (rowNum === 1) return;
     const v = row.values;
+    if (v[col.Team] === "2027Draftees" || v[col.Team] === "FreeAgents") return;
+    const isG = /G/.test(String(v[col.Position] || ""));
+    const allowed = isG ? X_FACTOR_GOALIE_ABILITIES : X_FACTOR_SKATER_ABILITIES;
+    const xFactors = [];
+    for (const i of [1, 2, 3]) {
+      const ability = v[col[`XFactor${i}`]], t = TIER_KEY[v[col[`XFactor${i}Tier`]]];
+      if (allowed.includes(ability) && t) xFactors.push({ ability, tier: t });
+    }
     source.push({
+      xFactors,
       name: v[col.Name],
       posGroup: posGroup(String(v[col.Position] || "")),
       heightInches: heightInches(v[col.Height]),
@@ -67,7 +91,7 @@ async function main() {
   });
 
   const { rows: players } = await pool.query(
-    "SELECT id, name, position, height_inches, weight_lbs, player_type FROM players WHERE id <= $1 ORDER BY id",
+    "SELECT id, name, position, height_inches, weight_lbs, player_type, x_factors FROM players WHERE id <= $1 ORDER BY id",
     [source.length]
   );
   if (players.length !== source.length) {
@@ -89,10 +113,18 @@ async function main() {
     throw new Error("Rows don't line up with the source file closely enough — aborting without writing anything.");
   }
 
-  let updated = 0;
+  let updated = 0, xfSet = 0;
   for (let i = 0; i < players.length; i++) {
     const p = players[i];
     const s = source[i];
+    if (s.xFactors.length && !(p.x_factors || []).length) {
+      xfSet++;
+      if (APPLY) await pool.query("UPDATE players SET x_factors = $1 WHERE id = $2", [JSON.stringify(s.xFactors), p.id]);
+    }
+    if (!APPLY) {
+      if (p.height_inches == null || p.weight_lbs == null || p.player_type == null) updated++;
+      continue;
+    }
     const { rowCount } = await pool.query(
       `UPDATE players SET
          height_inches = COALESCE(height_inches, $1),
@@ -103,7 +135,7 @@ async function main() {
     );
     updated += rowCount;
   }
-  console.log(`[${process.env.LEAGUE}] filled build/type for ${updated} player(s).`);
+  console.log(`[${process.env.LEAGUE}] ${APPLY ? "filled" : "DRY RUN - would fill"} build/type for ${updated} player(s) and X-Factors for ${xfSet} player(s).`);
   if (nameMismatches.length > 0) {
     console.log("Name mismatches tolerated (hand-corrected names, still matched by position + row order):");
     nameMismatches.forEach((m) => console.log(`  ${m}`));
