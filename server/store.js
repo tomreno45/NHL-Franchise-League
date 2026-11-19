@@ -3448,7 +3448,16 @@ async function executeDraftPick(teamId, prospectId, { isHumanControlled }) {
     const prospect = rows[0];
     const idRes = await client.query("SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM players");
     const nextId = idRes.rows[0].next_id;
-    const jerseyNumber = Math.floor(Math.random() * 89) + 10;
+    // An imported prospect keeps the number he already wears, unless the picking
+    // team already has someone on it; otherwise (and for generated prospects) roll a free one.
+    const takenRes = await client.query("SELECT jersey_number FROM players WHERE team_id = $1", [teamId]);
+    const taken = new Set(takenRes.rows.map((r) => r.jersey_number));
+    let jerseyNumber = prospect.jersey_number;
+    if (!jerseyNumber || taken.has(jerseyNumber)) {
+      do {
+        jerseyNumber = Math.floor(Math.random() * 89) + 10;
+      } while (taken.has(jerseyNumber) && taken.size < 89);
+    }
 
     let capHit;
     let contractYearsLeft;
@@ -3476,8 +3485,9 @@ async function executeDraftPick(teamId, prospectId, { isHumanControlled }) {
     await client.query(
       `INSERT INTO players
          (id, team_id, name, position, jersey_number, age, overall, cap_hit, contract_years_left,
-          in_game_status, roster_assignment, attributes, potential, stats, drafted_season_number, rights_only)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'needs_update','MINORS',$10,$11,$12,$13,$14)`,
+          in_game_status, roster_assignment, attributes, potential, stats, drafted_season_number, rights_only,
+          height_inches, weight_lbs, x_factors, player_type)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'needs_update','MINORS',$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
       [
         nextId,
         teamId,
@@ -3493,6 +3503,10 @@ async function executeDraftPick(teamId, prospectId, { isHumanControlled }) {
         JSON.stringify(defaultStatsFor(prospect.position)),
         draftedSeasonNumber,
         rightsOnly,
+        prospect.height_inches,
+        prospect.weight_lbs,
+        JSON.stringify(prospect.x_factors || []),
+        prospect.player_type || null,
       ]
     );
     await client.query("DELETE FROM draft_prospects WHERE id = $1", [prospectId]);

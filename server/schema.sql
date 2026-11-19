@@ -85,6 +85,25 @@ ALTER TABLE players DROP COLUMN IF EXISTS roster_assignment_synced;
 -- would get silently erased the next time the server reboots.
 ALTER TABLE players ADD COLUMN IF NOT EXISTS nhl27_team_id INTEGER REFERENCES teams(id);
 
+-- Up to 3 [{ability, tier}, ...] entries a GM has entered to match whatever
+-- NHL 27 actually assigned this player — same philosophy as nationality:
+-- this app never generates these itself, just records and displays them
+-- (see data.js's X_FACTOR_CATEGORIES for the valid ability list and
+-- store.js's setPlayerXFactors for validation). tier is one of
+-- "specialist"/"all_star"/"elite". Empty array for the (most) players who
+-- don't have any — NHL 27 doesn't give every player one.
+ALTER TABLE players ADD COLUMN IF NOT EXISTS x_factors JSONB NOT NULL DEFAULT '[]';
+
+-- Build and archetype, used to weight which X-Factors progression is likely
+-- to award (see data.js's X_FACTOR_GUIDELINES and store.js's xFactorFit).
+-- All nullable: only some roster sources carry them (OG HFL's does — see
+-- scripts/backfillPlayerBuild.js), and a player with no value here is just
+-- treated as neutral on that criterion rather than penalized. player_type is
+-- one of data.js's canonical labels ("Sniper", "Power Forward", ...).
+ALTER TABLE players ADD COLUMN IF NOT EXISTS height_inches INTEGER;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS weight_lbs INTEGER;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS player_type TEXT;
+
 -- The last season-to-date totals the commissioner entered for this player
 -- from user (console) games — kept apart from `stats` so re-entering them
 -- replaces the previous numbers instead of stacking (store.js's
@@ -390,3 +409,19 @@ CREATE INDEX IF NOT EXISTS idx_games_date ON games(date);
 CREATE INDEX IF NOT EXISTS idx_draft_picks_season ON draft_picks(season_number);
 CREATE INDEX IF NOT EXISTS idx_draft_picks_current_team ON draft_picks(current_team_id);
 CREATE INDEX IF NOT EXISTS idx_draft_prospects_season ON draft_prospects(season_number);
+
+-- X-Factors an imported prospect already has in NHL 27 (same [{ability, tier}]
+-- shape as players.x_factors). Never shown on the public draft board; copied
+-- onto the players row when the prospect is picked (store.js's executeDraftPick).
+-- Empty for generated prospects.
+ALTER TABLE draft_prospects ADD COLUMN IF NOT EXISTS x_factors JSONB NOT NULL DEFAULT '[]';
+
+-- Archetype ("Sniper", "Playmaker", ...) of an imported prospect, same canonical
+-- labels as players.player_type; copied onto the players row when picked.
+-- NULL for generated prospects.
+ALTER TABLE draft_prospects ADD COLUMN IF NOT EXISTS player_type TEXT;
+
+-- Jersey number an imported prospect already wears in NHL 27. Used when picked
+-- unless the drafting team already has that number (then a free one is rolled).
+-- NULL for generated prospects, which always get a random free number.
+ALTER TABLE draft_prospects ADD COLUMN IF NOT EXISTS jersey_number INTEGER;
