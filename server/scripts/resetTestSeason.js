@@ -38,7 +38,8 @@ async function main() {
   ]);
   // Entered user-game totals are part of the season stats too (see
   // resetSeasonToDay1.js).
-  await pool.query("UPDATE players SET console_stats = NULL");
+  await pool.query("UPDATE players SET console_stats = NULL, playoff_stats = NULL, playoff_console_stats = NULL");
+  await pool.query("DELETE FROM playoff_series"); // cascades to playoff_games
   console.log("Reset all player season stats to zero, roster_assignment to MINORS.");
 
   // --- 2. Rebuild a sane starting lineup for every team ---

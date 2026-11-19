@@ -51,7 +51,8 @@ async function main() {
   // The commissioner's entered user-game totals (see store.js's
   // saveUserGameStats) are part of those season stats too — leaving them
   // behind would make the next entry subtract numbers that no longer exist.
-  await pool.query("UPDATE players SET console_stats = NULL");
+  await pool.query("UPDATE players SET console_stats = NULL, playoff_stats = NULL, playoff_console_stats = NULL");
+  await pool.query("DELETE FROM playoff_series"); // cascades to playoff_games
   console.log(`[${league}] Reset all player season stats to zero, roster_assignment to MINORS.`);
 
   // --- 2. Rebuild a sane starting lineup for every team ---

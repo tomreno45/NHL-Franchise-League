@@ -17,6 +17,7 @@ import TeamRoster from "./components/TeamRoster";
 import LeagueRosters from "./components/LeagueRosters";
 import Schedule from "./components/Schedule";
 import ScoringLeaders from "./components/ScoringLeaders";
+import Playoffs from "./components/Playoffs";
 import Progression from "./components/Progression";
 import DraftPicks from "./components/DraftPicks";
 import DraftBoard from "./components/DraftBoard";
@@ -29,6 +30,7 @@ import Commissioner from "./components/Commissioner";
 import CommissionerRosterMoves from "./components/CommissionerRosterMoves";
 import CommissionerTeamRosters from "./components/CommissionerTeamRosters";
 import CommissionerUserGameStats from "./components/CommissionerUserGameStats";
+import CommissionerPlayoffs from "./components/CommissionerPlayoffs";
 import UserList from "./components/UserList";
 import PendingMoves from "./components/PendingMoves";
 import Notifications from "./components/Notifications";
@@ -73,6 +75,7 @@ const GROUPS = [
       { key: "rosters", label: "Rosters", Component: LeagueRosters },
       { key: "schedule", label: "Schedule", Component: Schedule },
       { key: "scorers", label: "Stats", Component: ScoringLeaders },
+      { key: "playoffs", label: "Playoffs", Component: Playoffs },
       { key: "leaguetransactions", label: "Transactions", Component: LeagueTransactions },
     ],
   },
@@ -99,6 +102,7 @@ const GROUPS = [
       { key: "commissionerrostermoves", label: "Roster Moves", Component: CommissionerRosterMoves },
       { key: "commissionerteamrosters", label: "Team Rosters", Component: CommissionerTeamRosters },
       { key: "commissionerusergamestats", label: "User Game Stats", Component: CommissionerUserGameStats },
+      { key: "commissionerplayoffs", label: "Playoffs", Component: CommissionerPlayoffs },
     ],
   },
 ];

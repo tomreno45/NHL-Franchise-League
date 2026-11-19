@@ -323,6 +323,48 @@ CREATE TABLE IF NOT EXISTS season_results (
   champion_team_id INTEGER REFERENCES teams(id)
 );
 
+-- Playoff bracket (see playoffs.js). The commissioner picks and seeds the
+-- field; round 1 is created from that, and each later round is created once
+-- every series in the one before it has a winner. Series are first-to-4;
+-- playoff_games only ever holds games already played plus the ONE next game
+-- of an undecided series, so a clinched series never has dangling games.
+-- Kept apart from `games` so playoff games never touch standings, the
+-- regular-season game counts, or the Schedule tab.
+CREATE TABLE IF NOT EXISTS playoff_series (
+  id SERIAL PRIMARY KEY,
+  season_number INTEGER NOT NULL,
+  round INTEGER NOT NULL,
+  slot INTEGER NOT NULL,
+  high_seed_team_id INTEGER NOT NULL REFERENCES teams(id),
+  low_seed_team_id INTEGER NOT NULL REFERENCES teams(id),
+  high_seed INTEGER NOT NULL,
+  low_seed INTEGER NOT NULL,
+  high_wins INTEGER NOT NULL DEFAULT 0,
+  low_wins INTEGER NOT NULL DEFAULT 0,
+  winner_team_id INTEGER REFERENCES teams(id),
+  UNIQUE (season_number, round, slot)
+);
+
+CREATE TABLE IF NOT EXISTS playoff_games (
+  id SERIAL PRIMARY KEY,
+  series_id INTEGER NOT NULL REFERENCES playoff_series(id) ON DELETE CASCADE,
+  game_number INTEGER NOT NULL,
+  home_team_id INTEGER NOT NULL REFERENCES teams(id),
+  away_team_id INTEGER NOT NULL REFERENCES teams(id),
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  home_score INTEGER,
+  away_score INTEGER,
+  went_to_ot BOOLEAN NOT NULL DEFAULT false,
+  source TEXT,
+  UNIQUE (series_id, game_number)
+);
+
+-- Playoff-only player stats (same shape as players.stats) and the commissioner's
+-- running totals for console playoff games (same replace-not-stack idea as
+-- console_stats). Both NULL until used and cleared at progression, like stats.
+ALTER TABLE players ADD COLUMN IF NOT EXISTS playoff_stats JSONB;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS playoff_console_stats JSONB;
+
 -- A commissioner-set override for a single season's draft order, since real
 -- playoffs happen on the NHL 27 console (not simulated here) and this app
 -- only ever learns the champion — everyone else's elimination round is

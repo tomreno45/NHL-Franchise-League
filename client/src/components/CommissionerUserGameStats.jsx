@@ -103,6 +103,10 @@ export default function CommissionerUserGameStats() {
   const [error, setError] = useState(null);
   const [savingTeamId, setSavingTeamId] = useState(null);
   const [message, setMessage] = useState(null);
+  // Regular-season user games or playoff user games — same entry screen, kept
+  // in separate stat columns on the server.
+  const [scope, setScope] = useState("regular");
+  const isPlayoffs = scope === "playoffs";
 
   const load = (data) => {
     setTeams(data);
@@ -110,8 +114,11 @@ export default function CommissionerUserGameStats() {
   };
 
   useEffect(() => {
-    api.getUserGameStats().then(load).catch((e) => setError(e.message));
-  }, []);
+    setTeams(null);
+    setError(null);
+    setMessage(null);
+    api.getUserGameStats(scope).then(load).catch((e) => setError(e.message));
+  }, [scope]);
 
   const handleChange = (playerId, field, value) => {
     setMessage(null);
@@ -133,7 +140,7 @@ export default function CommissionerUserGameStats() {
 
     setSavingTeamId(team.team.id);
     try {
-      load(await api.saveUserGameStats(entries));
+      load(await api.saveUserGameStats(entries, scope));
       setMessage(`Saved ${entries.length} player${entries.length === 1 ? "" : "s"} for ${team.team.city} ${team.team.name}.`);
     } catch (e) {
       setError(e.message);
@@ -142,15 +149,47 @@ export default function CommissionerUserGameStats() {
     }
   };
 
-  if (!teams) return error ? <p className="text-red-500">{error}</p> : <p className="text-slate-400">Loading…</p>;
+  const scopeToggle = (
+    <div className="mb-4 flex gap-1">
+      {[
+        ["regular", "Regular Season"],
+        ["playoffs", "Playoffs"],
+      ].map(([key, label]) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => setScope(key)}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            scope === key ? "bg-cyan-400/10 text-slate-100" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (!teams) {
+    return (
+      <div>
+        {scopeToggle}
+        {error ? <p className="text-red-500">{error}</p> : <p className="text-slate-400">Loading…</p>}
+      </div>
+    );
+  }
 
   return (
     <div>
+      {scopeToggle}
       <p className="mb-4 text-sm text-slate-500">
         Console games only record a final score, so each user team's player stats from those games go in here as
-        season-to-date totals — re-entering replaces the last numbers. Games played can't be more than the user games
-        scored for that team. Stats from games against CPU teams come from the simulation and aren't touched.
+        {isPlayoffs ? " playoff" : " season-to-date"} totals — re-entering replaces the last numbers. Games played can't be
+        more than the user {isPlayoffs ? "playoff " : ""}games scored for that team. Stats from games against CPU teams
+        come from the simulation and aren't touched.
       </p>
+      {isPlayoffs && teams.length === 0 && (
+        <p className="mb-3 text-sm text-slate-500">No user teams are in this season's playoff bracket yet.</p>
+      )}
       {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
       {message && <p className="mb-3 text-sm text-emerald-400">{message}</p>}
 
@@ -170,7 +209,7 @@ export default function CommissionerUserGameStats() {
                     {t.team.city} {t.team.name}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {t.userGamesPlayed} user game{t.userGamesPlayed === 1 ? "" : "s"} scored · {t.goalsFor} goals for in
+                    {t.userGamesPlayed} user {isPlayoffs ? "playoff " : ""}game{t.userGamesPlayed === 1 ? "" : "s"} scored · {t.goalsFor} goals for in
                     them · {enteredGoals} skater goals entered
                   </p>
                 </div>
@@ -186,7 +225,9 @@ export default function CommissionerUserGameStats() {
 
               {t.userGamesPlayed === 0 ? (
                 <p className="text-sm text-slate-500">
-                  No user games scored for this team yet — enter their scores on the Schedule tab first.
+                  {isPlayoffs
+                    ? "No user playoff games scored for this team yet — enter their scores on the Playoffs tab first."
+                    : "No user games scored for this team yet — enter their scores on the Schedule tab first."}
                 </p>
               ) : (
                 <div className="flex flex-col gap-4">

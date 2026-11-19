@@ -1006,6 +1006,27 @@ async function persistRoster(client, teamInfo) {
   }
 }
 
+// One game's result from the two teams' strengths — shared by regular-season
+// simulation and playoffs.js so both play by the same rules.
+function rollGameResult(home, away) {
+  // Base rate (goals/team/game before the opponent-defense ratio and home
+  // ice bump) — bumped 40% per the user's own request, up from 2.6.
+  const BASE_GOALS_PER_TEAM = 2.6 * 1.4;
+  const homeExpected = BASE_GOALS_PER_TEAM * (home.offense / away.defense) * 1.06;
+  const awayExpected = BASE_GOALS_PER_TEAM * (away.offense / home.defense);
+
+  let homeGoals = poissonSample(homeExpected);
+  let awayGoals = poissonSample(awayExpected);
+  let wentToOT = false;
+
+  if (homeGoals === awayGoals) {
+    wentToOT = true;
+    if (Math.random() < 0.5) homeGoals += 1;
+    else awayGoals += 1;
+  }
+  return { homeGoals, awayGoals, wentToOT };
+}
+
 async function simulateGame(gameId) {
   const id = Number(gameId);
   const teamsById = await getTeamsById();
@@ -1022,21 +1043,7 @@ async function simulateGame(gameId) {
     const home = await teamStrength(client, game.homeTeamId);
     const away = await teamStrength(client, game.awayTeamId);
 
-    // Base rate (goals/team/game before the opponent-defense ratio and home
-    // ice bump) — bumped 40% per the user's own request, up from 2.6.
-    const BASE_GOALS_PER_TEAM = 2.6 * 1.4;
-    const homeExpected = BASE_GOALS_PER_TEAM * (home.offense / away.defense) * 1.06;
-    const awayExpected = BASE_GOALS_PER_TEAM * (away.offense / home.defense);
-
-    let homeGoals = poissonSample(homeExpected);
-    let awayGoals = poissonSample(awayExpected);
-    let wentToOT = false;
-
-    if (homeGoals === awayGoals) {
-      wentToOT = true;
-      if (Math.random() < 0.5) homeGoals += 1;
-      else awayGoals += 1;
-    }
+    const { homeGoals, awayGoals, wentToOT } = rollGameResult(home, away);
 
     distributeGoals(home, homeGoals, awayGoals, wentToOT);
     distributeGoals(away, awayGoals, homeGoals, wentToOT);
@@ -2218,7 +2225,7 @@ async function runProgression() {
   await withTransaction(async (client) => {
     for (const r of results) {
       await client.query(
-        "UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4, potential = $5, x_factors = $6, console_stats = NULL WHERE id = $7",
+        "UPDATE players SET age = $1, overall = $2, attributes = $3, stats = $4, potential = $5, x_factors = $6, console_stats = NULL, playoff_stats = NULL, playoff_console_stats = NULL WHERE id = $7",
         [
           r.newAge,
           r.newOverall,
@@ -5044,6 +5051,20 @@ module.exports = {
   getLineupSlots,
   getUserGameStats,
   saveUserGameStats,
+  // Shared with playoffs.js (kept out of the public API above): the sim engine
+  // and console-stat helpers it reuses so playoff games behave exactly like
+  // regular-season ones, just crediting different stat columns.
+  _internals: {
+    teamStrength,
+    distributeGoals,
+    rollGameResult,
+    zeroConsoleStats,
+    applyConsoleStatsDelta,
+    normalizeConsoleEntry,
+    getTeamsById,
+    badRequest,
+    notFound,
+  },
   getXFactorCatalog,
   setPlayerXFactors,
   assignLineupSlot,

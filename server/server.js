@@ -5,6 +5,7 @@ const session = require("express-session");
 const pgSessionStore = require("connect-pg-simple")(session);
 const ExcelJS = require("exceljs");
 const store = require("./store");
+const playoffs = require("./playoffs");
 const { initDatabase } = require("./seed");
 const { sessionPool, runWithLeague, LEAGUE_SLUGS, LEAGUES } = require("./db");
 const { SKATER_ATTRS, GOALIE_ATTRS } = require("./data");
@@ -674,7 +675,7 @@ app.get(
   "/api/commissioner/user-game-stats",
   requireCommissioner,
   asyncRoute(async (req, res) => {
-    res.json(await store.getUserGameStats());
+    res.json(req.query.scope === "playoffs" ? await playoffs.getPlayoffUserGameStats() : await store.getUserGameStats());
   })
 );
 
@@ -682,7 +683,11 @@ app.put(
   "/api/commissioner/user-game-stats",
   requireCommissioner,
   asyncRoute(async (req, res) => {
-    res.json(await store.saveUserGameStats(req.body.entries));
+    res.json(
+      req.body.scope === "playoffs"
+        ? await playoffs.savePlayoffUserGameStats(req.body.entries)
+        : await store.saveUserGameStats(req.body.entries)
+    );
   })
 );
 
@@ -739,6 +744,66 @@ app.get(
   "/api/playoffs/results",
   asyncRoute(async (req, res) => {
     res.json(await store.getSeasonResults());
+  })
+);
+
+// Playoff bracket (best-of-7 series, see playoffs.js) and playoff-only stats.
+// The bracket's final series sets the champion automatically; the manual
+// /champion route above stays as a commissioner override.
+app.get(
+  "/api/playoffs/bracket",
+  asyncRoute(async (req, res) => {
+    res.json(await playoffs.getPlayoffBracket());
+  })
+);
+
+app.get(
+  "/api/playoffs/stats",
+  asyncRoute(async (req, res) => {
+    res.json(await playoffs.getPlayoffStats());
+  })
+);
+
+// The commissioner picks the playoff field, in seed order (first = #1 seed).
+app.put(
+  "/api/playoffs/field",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await playoffs.setPlayoffField(req.body.teamIds));
+  })
+);
+
+app.post(
+  "/api/playoffs/reset",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await playoffs.resetPlayoffs());
+  })
+);
+
+// Console playoff game (two user teams): final score only.
+app.put(
+  "/api/playoffs/games/:id/score",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    const { wentToOT, homeScore, awayScore } = req.body;
+    res.json(await playoffs.submitPlayoffScore(req.params.id, { wentToOT, homeScore, awayScore }));
+  })
+);
+
+app.post(
+  "/api/playoffs/games/:id/simulate",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await playoffs.simulatePlayoffGame(req.params.id));
+  })
+);
+
+app.post(
+  "/api/playoffs/simulate-cpu",
+  requireCommissioner,
+  asyncRoute(async (req, res) => {
+    res.json(await playoffs.simulateCpuPlayoffGames());
   })
 );
 

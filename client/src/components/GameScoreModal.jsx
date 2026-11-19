@@ -24,7 +24,9 @@ function ScoreInput({ team, value, onChange }) {
 // A console game is reported as just its final score (and whether it went to
 // OT) — the players' stats from these games are entered separately, as
 // season totals, in the commissioner's User Game Stats tab.
-export default function GameScoreModal({ game, onClose, onSaved }) {
+// `submit` lets the playoff bracket reuse this modal with its own endpoint;
+// `game.subtitle` replaces the date line for games that have no date.
+export default function GameScoreModal({ game, onClose, onSaved, submit }) {
   const [awayScore, setAwayScore] = useState(game.status === "final" ? String(game.awayScore) : "");
   const [homeScore, setHomeScore] = useState(game.status === "final" ? String(game.homeScore) : "");
   const [wentToOT, setWentToOT] = useState(Boolean(game.wentToOT));
@@ -46,11 +48,8 @@ export default function GameScoreModal({ game, onClose, onSaved }) {
 
     setSubmitting(true);
     try {
-      const updated = await api.submitScore(game.id, {
-        wentToOT,
-        homeScore: Number(homeScore),
-        awayScore: Number(awayScore),
-      });
+      const payload = { wentToOT, homeScore: Number(homeScore), awayScore: Number(awayScore) };
+      const updated = await (submit ? submit(game.id, payload) : api.submitScore(game.id, payload));
       onSaved(updated);
     } catch (err) {
       setError(err.message);
@@ -67,7 +66,7 @@ export default function GameScoreModal({ game, onClose, onSaved }) {
             <h2 className="text-lg font-bold text-slate-100">
               {game.awayTeam.abbr} @ {game.homeTeam.abbr} — Final Score
             </h2>
-            <p className="text-xs text-slate-500">{game.date}</p>
+            <p className="text-xs text-slate-500">{game.subtitle ?? game.date}</p>
           </div>
           <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-300">
             ✕
